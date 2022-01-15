@@ -33,8 +33,11 @@ In order to do the load-balancing between these instances we will implement a Ga
 
 To further reduce the load on the microservices, we will implement a Cache which will store for a short period of time the responses for the "GET" requests.
 
-Here is a diagram depicting the high-level interaction between the components of our e-commerce syste:
+Here is a diagram depicting the high-level interaction between the components of our e-commerce system:
 ![alt text](img/sysInteraction.png "E-Commerce components interaction")
+
+Here is the sequence diagram depicting the basic flow of a shopping session.
+![alt text](img/sdShopping.png "Shopping sequence diagram")
 
 ### Warehouse microservice
 This microservice will handle all the warehouse-related operations.
