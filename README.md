@@ -137,9 +137,11 @@ This microservice will expose the following REST APIs:
 8. consolidateQuantities - recalculate quantities for all the operations that happened before the specified date.
 	- Method: PUT  
 	- Path: /warehouse/consolidate  
+
 |Name           |Location         | Type             | Description                                       |
 |---------------|-----------------|------------------|---------------------------------------------------|
 | date          | query           | date             | The date for consolidation                        |
+
 	- Successful result:
 		* Status Code: 200
 
