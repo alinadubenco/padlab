@@ -12,7 +12,7 @@ There are 2 types of possible users of the system, each having a list of operati
 1. Manager - This is the manager (or employee) of the e-commerce. He can perform the following operations:
 	a. searchProducts - search for the existing products
 	b. getProduct - get the complete information about one product
-	c. addProduct - add the definition of a new produc
+	c. addProduct - add the definition of a new product
 	d. updateProduct - update the definition of an existing product
 	e. supplyProducts - supply products to the warehouse (add quantities of products)
 	f. getSalesReport - get information about what quantities of which products have been sold, for which price and the total sales amount	
@@ -82,4 +82,88 @@ This microservice will expose the following REST APIs:
 	- Successful result:
 		* Status Code: 200
 		* Content Type: application/json
-		* Body: JSON object containing the following properties: id, name, category, price, quantitydescription, characteristics
+		* Body: JSON object containing the following properties: id, name, category, price, quantitydescription, characteristics, version
+
+3. addProduct: add the definition of a new product
+	- Method: POST  
+	- Path: /warehouse/products/  
+	- Body: JSON object containing all the information about a product definition: name, category, price, quantitydescription, characteristics    
+	- Successful result:
+		* Status Code: 200
+		* Content Type: application/json
+		* Body: JSON object containing the following properties: id, name, category, price, quantitydescription, characteristics, version
+
+4. updateProduct: update the definition of an existing product
+	- Method: PUT  
+	- Path: /warehouse/products/  
+	- Body: JSON object containing all the information about a product definition: name, category, price, quantitydescription, characteristics    
+	- Successful result:
+		* Status Code: 200
+		* Content Type: application/json
+		* Body: JSON object containing the following properties: id, name, category, price, quantitydescription, characteristics, version
+
+5. supplyProducts - supply products to the warehouse (add quantities of products)
+	- Method: POST  
+	- Path: /warehouse/supply/  
+	- Body: JSON object containing all the information about the supply: date-time, list of product IDs and quantities.    
+	- Successful result:
+		* Status Code: 200
+		* Content Type: application/json
+
+6. reserveProducts - reserve quantities of products
+	- Method: POST  
+	- Path: /warehouse/reservation/  
+	- Body: JSON object containing all the information about the reservation: date-time, list of product IDs and quantities.    
+	- Successful result:
+		* Status Code: 200
+		* Content Type: application/json
+		* Body: JSON object containing a single property: reservationId
+
+6. confirmReservation - confirm reserved quantities of products
+	- Method: PUT  
+	- Path: /warehouse/reservation/confirm  
+	- Body: JSON object containing a single property: reservationId    
+	- Successful result:
+		* Status Code: 200
+		* Content Type: application/json
+
+7. cancelReservation - calcel reserved quantities of products
+	- Method: PUT  
+	- Path: /warehouse/reservation/confirm  
+	- Body: JSON object containing a single property: reservationId    
+	- Successful result:
+		* Status Code: 200
+
+8. consolidateQuantities - recalculate quantities for all the operations that happened before the specified date.
+	- Method: PUT  
+	- Path: /warehouse/consolidate  
+|Name           |Location         | Type             | Description                                       |
+|---------------|-----------------|------------------|---------------------------------------------------|
+| date          | query           | date             | The date for consolidation                        |
+	- Successful result:
+		* Status Code: 200
+
+
+### Ordering microservice
+This microservice will handle all the operations related to odering of products.
+
+#### The following technologies will be used:
+1. Programming language: Java11
+2. Frameworks: Spring Boot, Spring Web, JPA
+3. Database: MySql
+4. Protocol: HTTP, REST APIs
+
+#### The REST APIs
+The Path of all the REST APIs of this microservice will start with /ordering
+This microservice will expose the following REST APIs:
+
+1. placeOrder: place a purcase order
+	- Method: POST  
+	- Path: /ordering/order/  
+	- Body: a JSON object containing all the information about the purchase order: customer info, shipping address, list of product informations (product ID, quantity , price).  
+
+	- Successful result:
+		* Status Code: 200
+		* Content Type: application/json
+		* Body: JSON object containing all the information about the purchase order: order ID, order date-time, customer info, shipping address, list of product informations (product ID, quantity , price).
+
