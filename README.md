@@ -53,6 +53,7 @@ This microservice will expose the following REST APIs:
 	- Method: GET  
 	- Path: /warehouse/products/  
 	- Parameters:  
+
 |Name           |Location         | Type             | Description                                       |
 |---------------|-----------------|------------------|---------------------------------------------------|
 | category      | query           | URL-encoded text | The API will return only the products from the specified category                                        |
