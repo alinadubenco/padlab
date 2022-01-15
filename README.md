@@ -56,6 +56,7 @@ This microservice will expose the following REST APIs:
 	- Method: GET  
 	- Path: /warehouse/products/  
 	- Parameters:  
+
 |Name           |Location         | Type             | Description                                       |
 |---------------|-----------------|------------------|---------------------------------------------------|
 | category      | query           | URL-encoded text | The API will return only the products from the specified category                                        |
@@ -66,12 +67,14 @@ This microservice will expose the following REST APIs:
 	- Successful result:
 		* Status Code: 200
 		* Content Type: application/json
-		* Body: JSON object containing a list of products matching the search criteria. Each product in the list will contain the following properties: id, name, category, price, quantity
+		* Body: JSON object containing a list of products matching the search criteria. Each product in the list will contain the following properties: 
+		id, name, category, price, quantity
 
 2. getProduct: get the complete information about one product
 	- Method: GET  
 	- Path: /warehouse/products/  
 	- Parameters:  
+
 |Name           |Location         | Type             | Description                                       |
 |---------------|-----------------|------------------|---------------------------------------------------|
 | id            | query           | number           | The ID of the product to be retrieved             |
