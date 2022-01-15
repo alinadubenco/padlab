@@ -70,6 +70,7 @@ This microservice will expose the following REST APIs:
 	- Method: GET  
 	- Path: /warehouse/products/  
 	- Parameters:  
+
 |Name           |Location         | Type             | Description                                       |
 |---------------|-----------------|------------------|---------------------------------------------------|
 | id            | query           | number           | The ID of the product to be retrieved             |
