@@ -43,7 +43,7 @@ Here is the sequence diagram depicting the basic flow of a shopping session.
 This microservice will handle all the warehouse-related operations.
 
 #### The following technologies will be used:
-1. Programming language: Java11
+1. Programming language: Java 11
 2. Frameworks: Spring Boot, Spring Web, JPA
 3. Database: MySql
 4. Protocol: HTTP, REST APIs
@@ -145,12 +145,17 @@ This microservice will expose the following REST APIs:
 	- Successful result:
 		* Status Code: 200
 
+9. status: get the system status. This API should be called by the gateway to determine if the system is UP.
+	- Method: GET  
+	- Path: /warehouse/status/  
+	- Successful result:
+		* Status Code: 200
 
 ### Ordering microservice
 This microservice will handle all the operations related to odering of products.
 
 #### The following technologies will be used:
-1. Programming language: Java11
+1. Programming language: Java 11
 2. Frameworks: Spring Boot, Spring Web, JPA
 3. Database: MySql
 4. Protocol: HTTP, REST APIs
@@ -161,7 +166,7 @@ This microservice will expose the following REST APIs:
 
 1. placeOrder: place a purcase order
 	- Method: POST  
-	- Path: /ordering/order/  
+	- Path: /ordering/orders/  
 	- Body: a JSON object containing all the information about the purchase order: customer info, shipping address, list of product informations (product ID, quantity , price).  
 
 	- Successful result:
@@ -169,3 +174,110 @@ This microservice will expose the following REST APIs:
 		* Content Type: application/json
 		* Body: JSON object containing all the information about the purchase order: order ID, order date-time, customer info, shipping address, list of product informations (product ID, quantity , price).
 
+2. searchOrders: search for the existing purchase orders
+	- Method: GET  
+	- Path: /ordering/orders/  
+	- Parameters:  
+
+|Name           |Location         | Type             | Description                                                                     |
+|---------------|-----------------|------------------|---------------------------------------------------------------------------------|
+| user          | query           | URL-encoded text | The API will return only the orders for the specified user                      |
+| fromDate      | query           | number           | The API will return only the object placed after the specified date (inclusive) |
+| toDate        | query           | number           | The API will return only the object placed before the specified date (inclusive)|
+
+	- Successful result:
+		* Status Code: 200
+		* Content Type: application/json
+		* Body: JSON object containing a list of purchase orders matching the search criteria. Each product in the list will contain the following properties: 
+		id, date, product, price, quantity
+
+3. getSalesReport: get information about what quantities of which products have been sold, for which price and the total sales amount
+	- Method: GET  
+	- Path: /ordering/sales/  
+	- Parameters:  
+
+|Name           |Location         | Type             | Description                                                                                             |
+|---------------|-----------------|------------------|---------------------------------------------------------------------------------------------------------|
+| fromDate      | query           | number           | The API will include in the report only the purchase orders placed after the specified date (inclusive) |
+| toDate        | query           | number           | The API will include in the report only the purchase orders placed before the specified date (inclusive)|
+
+	- Successful result:
+		* Status Code: 200
+		* Content Type: application/json
+		* Body: JSON object containing information about the sales
+
+4. status: get the system status. This API should be called by the gateway to determine if the system is UP.
+	- Method: GET  
+	- Path: /warehouse/status/  
+	- Successful result:
+		* Status Code: 200
+
+
+### Gateway
+Gateway will handle the forwarding of all the REST API requests to microservices. 
+It will also do load-balancing.
+In addition, the Gateway will decide what should be cached and will return the cached result if that is available (without calling the microservices).
+
+All the communications in our e-commerce system will go through the Gateway:
+- clients will send the requests to Gateway    
+- when a microservice needs to call a REST API from another microservice, it will send the request to Gateway and Gateway  
+- the Gateway will decide which microservice and which instance of that microservice should process the request
+- the Gateway will forward the requests to the correct microservice instance
+- when the Gateway gets the response from the microservice, it will forward the response to the client that has called the API
+
+#### The following technologies will be used:
+1. Programming language: Java 11
+2. Frameworks: Spring Boot, Servlet, Java 11 standard HTTP Client API
+3. Protocol: HTTP
+
+#### The REST APIs
+The Path of all the REST APIs of this microservice will start with /ordering
+This microservice will expose the following REST APIs:
+
+1. registerService: register a mincroservices instance. This API should be called by every microservice instance when it comes up.
+	- Method: POST  
+	- Path: /gateway/services/  
+	- Body: a JSON object containing all the information about the service instance: microservice type, host/IP, port.  
+	- Successful result:
+		* Status Code: 200
+
+
+
+### Cache
+The Cache will be used to store for a pre-defined period of time responses to "GET" requests.
+
+#### The following technologies will be used:
+1. Programming language: Java 11
+2. Frameworks: Spring Boot, Spring Web, Google Guava Cache (https://github.com/google/guava/wiki/CachesExplained)
+4. Protocol: HTTP, REST APIs
+
+#### The REST APIs
+The Path of all the REST APIs of this microservice will start with /cache
+This service will expose the following REST APIs:
+
+1. addCache: add a response to the Cache
+	- Method: POST  
+	- Path: /cache/responses/  
+	- Parameters:  
+
+|Name      |Location  | Type               | Description                                                 |
+|----------|----------|--------------------|-------------------------------------------------------------|
+| url      | query    | URL-encoded string | the URL of the request whose response has to be cached      |
+
+	- Body: a JSON object containing the respose for the corresponding URL
+	- Successful result:
+		* Status Code: 200
+
+2. getCache: get a response from the Cache
+	- Method: GET  
+	- Path: /cache/responses/  
+	- Parameters:  
+
+|Name      |Location  | Type               | Description                                                          |
+|----------|----------|--------------------|----------------------------------------------------------------------|
+| url      | query    | URL-encoded string | the URL of the request whose response has to be retrieved from cache |
+
+	- Successful result:
+		* Status Code: 200
+	- Cache not found result:
+		* Status Code: 404
