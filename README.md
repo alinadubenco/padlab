@@ -75,12 +75,12 @@ This microservice will expose the following REST APIs:
 
 2. getProduct: get the complete information about one product
 	- Method: GET  
-	- Path: /warehouse/products/  
+	- Path: /warehouse/products/{id}  
 	- Parameters:  
 
 |Name           |Location         | Type             | Description                                       |
 |---------------|-----------------|------------------|---------------------------------------------------|
-| id            | query           | number           | The ID of the product to be retrieved             |
+| id            | path            | number           | The ID of the product to be retrieved             |
 
 	- Successful result:
 		* Status Code: 200
@@ -260,12 +260,12 @@ This service will expose the following REST APIs:
 
 1. addCache: add a response to the Cache
 	- Method: POST  
-	- Path: /cache/responses/  
+	- Path: /cache/responses/{url}  
 	- Parameters:  
 
 |Name      |Location  | Type               | Description                                                 |
 |----------|----------|--------------------|-------------------------------------------------------------|
-| url      | query    | URL-encoded string | the URL of the request whose response has to be cached      |
+| url      | path     | URL-encoded string | the URL of the request whose response has to be cached      |
 
 	- Body: a JSON object containing the respose for the corresponding URL
 	- Successful result:
@@ -273,12 +273,12 @@ This service will expose the following REST APIs:
 
 2. getCache: get a response from the Cache
 	- Method: GET  
-	- Path: /cache/responses/  
+	- Path: /cache/responses/{url}  
 	- Parameters:  
 
 |Name      |Location  | Type               | Description                                                          |
 |----------|----------|--------------------|----------------------------------------------------------------------|
-| url      | query    | URL-encoded string | the URL of the request whose response has to be retrieved from cache |
+| url      | path     | URL-encoded string | the URL of the request whose response has to be retrieved from cache |
 
 	- Successful result:
 		* Status Code: 200
