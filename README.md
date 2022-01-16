@@ -9,18 +9,21 @@ This is the implementation of a simple an e-commerce system which will handle th
 
 There are 2 types of possible users of the system, each having a list of operations that they can perform:
 
-1. Manager - This is the manager (or employee) of the e-commerce. He can perform the following operations:
-	a. searchProducts - search for the existing products
-	b. getProduct - get the complete information about one product
-	c. addProduct - add the definition of a new product
-	d. updateProduct - update the definition of an existing product
-	e. supplyProducts - supply products to the warehouse (add quantities of products)
-	f. getSalesReport - get information about what quantities of which products have been sold, for which price and the total sales amount	
-2. Customer - This is the customer of the e-commerce. He can perform the following operations:
-	a. searchProducts - search for the existing products
-	b. getProduct - get the complete information about one product
-	c. placeOrder - place a purcase order
-	d. searchOrders - search the orders placed earlier
+1. Manager - This is the manager (or employee) of the e-commerce. He can perform the following operations:    
+
+	a. searchProducts - search for the existing products    
+	b. getProduct - get the complete information about one product    
+	c. addProduct - add the definition of a new product    
+	d. updateProduct - update the definition of an existing product    
+	e. supplyProducts - supply products to the warehouse (add quantities of products)    
+	f. getSalesReport - get information about what quantities of which products have been sold, for which price and the total sales amount	   
+
+2. Customer - This is the customer of the e-commerce. He can perform the following operations:    
+
+	a. searchProducts - search for the existing products    
+	b. getProduct - get the complete information about one product    
+	c. placeOrder - place a purcase order    
+	d. searchOrders - search the orders placed earlier    
 	
 ## System architecture
 Our e-commerce system will consyst of 2 microservices: 
