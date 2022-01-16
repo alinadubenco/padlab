@@ -5,7 +5,7 @@ For other laboratories, please see the corresponding branch:
 2. Lab2 -> branch "lab2"
 
 ## System funnctionality
-This is the implementation of a simple an e-commerce system which will handle the ordering and warehouse operations.
+This is the implementation of a simple e-commerce system which will handle the ordering and warehouse operations.
 
 There are 2 types of possible users of the system, each having a list of operations that they can perform:
 
@@ -30,7 +30,7 @@ Our e-commerce system will consyst of 2 microservices:
 1. Warehouse - which will be used to handle the information of the products and available quantities.
 2. Ordering - which will be used to perform the sales and create the sales report
 
-Since we expect a big load on our e-commerce system, we will nee to have multiple instances of each microservice.
+Since we expect a big load on our e-commerce system, we will need to have multiple instances of each microservice.
 
 In order to do the load-balancing between these instances we will implement a Gateway.
 
