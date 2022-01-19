@@ -1,4 +1,4 @@
-package edu.dubenco.alina.ms.service1;
+package edu.dubenco.alina.ms.warehouse;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

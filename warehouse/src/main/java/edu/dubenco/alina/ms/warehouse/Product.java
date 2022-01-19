@@ -1,4 +1,4 @@
-package edu.dubenco.alina.ms.service1;
+package edu.dubenco.alina.ms.warehouse;
 
 import java.math.BigDecimal;
 import java.util.Objects;
