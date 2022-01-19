@@ -159,7 +159,7 @@ This microservice will handle all the operations related to odering of products.
 
 #### The following technologies will be used:
 1. Programming language: Java 11
-2. Frameworks: Spring Boot, Spring Web, Spring Data Couchbase Reactive
+2. Frameworks: Spring Boot, Spring Web, Spring Data Couchbase, Spring Data Repositories
 3. Database: Couchbase (NoSQL)
 4. Protocol: HTTP, REST APIs
 
