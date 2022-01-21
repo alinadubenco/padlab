@@ -6,6 +6,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import edu.dubenco.alina.ms.warehouse.repo.Product;
+import edu.dubenco.alina.ms.warehouse.repo.ProductRepository;
+
 @Configuration
 class LoadDatabase {
 

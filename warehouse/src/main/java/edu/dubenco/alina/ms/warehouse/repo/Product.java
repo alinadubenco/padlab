@@ -1,4 +1,4 @@
-package edu.dubenco.alina.ms.warehouse;
+package edu.dubenco.alina.ms.warehouse.repo;
 
 import java.math.BigDecimal;
 import java.util.Objects;
@@ -6,20 +6,37 @@ import java.util.Objects;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Lob;
+import javax.persistence.Transient;
+
+import org.springframework.data.annotation.Version;
 
 @Entity
-class Product {
+public class Product {
 
-	private @Id @GeneratedValue Long id;
+	@Id @GeneratedValue 
+	private Long id;
+	
 	private String name;
 	private String description;
 	private String category;
 	private BigDecimal price;
 
-	Product() {
+	private String characteristics;
+	
+	@Lob 
+	private String photo;
+	
+	@Version
+	private long version;
+	
+	@Transient
+	private int quantity;
+
+	public Product() {
 	}
 
-	Product(String name, String role) {
+	public Product(String name, String role) {
 
 		this.name = name;
 		this.description = role;
@@ -66,6 +83,35 @@ class Product {
 	}
 
 	@Override
+	public String toString() {
+		return "Product{" + "id=" + this.id + ", name='" + this.name + "\'}'";
+	}
+
+	public String getCharacteristics() {
+		return characteristics;
+	}
+
+	public void setCharacteristics(String characteristics) {
+		this.characteristics = characteristics;
+	}
+
+	public String getPhoto() {
+		return photo;
+	}
+
+	public void setPhoto(String photo) {
+		this.photo = photo;
+	}
+
+	public long getVersion() {
+		return version;
+	}
+
+	public void setVersion(long version) {
+		this.version = version;
+	}
+
+	@Override
 	public boolean equals(Object o) {
 
 		if (this == o)
@@ -81,8 +127,12 @@ class Product {
 		return Objects.hash(this.id);
 	}
 
-	@Override
-	public String toString() {
-		return "Product{" + "id=" + this.id + ", name='" + this.name + "\'}'";
+	public int getQuantity() {
+		return quantity;
 	}
+
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+	}
+
 }
