@@ -11,6 +11,12 @@ import javax.persistence.Transient;
 
 import org.springframework.data.annotation.Version;
 
+/**
+ * This class holds information about a product.
+ * 
+ * @author Alina Dubenco
+ *
+ */
 @Entity
 public class Product {
 

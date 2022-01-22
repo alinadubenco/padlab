@@ -2,6 +2,12 @@ package edu.dubenco.alina.ms.warehouse;
 
 import java.math.BigDecimal;
 
+/**
+ * This class is used in REST API to transmit information about product(s).
+ * 
+ * @author Alina Dubenco
+ *
+ */
 public class ProductInfo {
 	private long id; 
 	private String name;

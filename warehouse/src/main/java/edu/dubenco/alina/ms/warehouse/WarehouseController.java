@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.MatrixVariable;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -22,11 +21,17 @@ import edu.dubenco.alina.ms.warehouse.repo.InputOutputRepository;
 import edu.dubenco.alina.ms.warehouse.repo.Product;
 import edu.dubenco.alina.ms.warehouse.repo.ProductRepository;
 
+/**
+ * This class handles all the REST APIs for the Warehouse microservice.
+ * 
+ * @author Alina Dubenco
+ *
+ */
 @RestController
 public class WarehouseController {
 
-	private static final String WAREHOUSE = "/warehouse";
-	private static final String WAREHOUSE_PRODUCTS = WAREHOUSE + "/products";
+	public static final String WAREHOUSE = "warehouse";
+	private static final String WAREHOUSE_PRODUCTS = "/" + WAREHOUSE + "/products";
 	
 	@Autowired
 	private ProductRepository productRepository;
@@ -65,7 +70,7 @@ public class WarehouseController {
 		return productRepository.save(product);
 	}
 	
-	@PostMapping(WAREHOUSE + "/supply")
+	@PostMapping("/" + WAREHOUSE + "/supply")
 	public void supplyProduct(@RequestBody DocumentInfo supplyInfo) {
 		Document doc = new Document(supplyInfo.getNumber(), supplyInfo.getDate(), true);
 		doc = docRepository.save(doc);
@@ -75,7 +80,7 @@ public class WarehouseController {
 		}
 	}
 	
-	@PostMapping(WAREHOUSE + "/reservation")
+	@PostMapping("/" + WAREHOUSE + "/reservation")
 	public DocumentInfo reserveProducts(@RequestBody DocumentInfo reservationInfo) {
 		Document doc = new Document(reservationInfo.getNumber(), reservationInfo.getDate(), false);
 		doc = docRepository.save(doc);
@@ -87,7 +92,7 @@ public class WarehouseController {
 		return reservationInfo;
 	}
 
-	@PutMapping(WAREHOUSE + "/reservation/{reservationId}/confirm")
+	@PutMapping("/" + WAREHOUSE + "/reservation/{reservationId}/confirm")
 	public void confirmReservation(@PathVariable long reservationId) {
 		Optional<Document> reservation = docRepository.findById(reservationId);
 		if(reservation.isPresent()) {

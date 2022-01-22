@@ -7,6 +7,13 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+/**
+ * This class holds information about inputs and outputs of products. <br/>
+ * It represents the details part of a {@link Document}
+ * 
+ * @author Alina Dubenco
+ *
+ */
 @Entity
 public class InputOutput {
 	@Id @GeneratedValue

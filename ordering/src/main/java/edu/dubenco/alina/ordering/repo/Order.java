@@ -4,6 +4,12 @@ import org.springframework.data.couchbase.core.mapping.Document;
 import org.springframework.data.couchbase.core.mapping.Field;
 import org.springframework.data.couchbase.core.mapping.id.IdAttribute;
 
+/**
+ * This class holds information about a purchase order. <br/>
+ * 
+ * @author Alina Dubenco
+ *
+ */
 @Document
 public class Order {
 	@IdAttribute private String id;

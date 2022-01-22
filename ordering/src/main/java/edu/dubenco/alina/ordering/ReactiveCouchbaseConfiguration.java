@@ -4,6 +4,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.couchbase.config.AbstractCouchbaseConfiguration;
 import org.springframework.data.couchbase.repository.config.EnableCouchbaseRepositories;
 
+/**
+ * This class is used for connecting to Couchbase DB
+ * 
+ * @author Alina Dubenco
+ *
+ */
 @Configuration
 @EnableCouchbaseRepositories(basePackages = {"edu.dubenco.alina.ordering.repo"})
 public class ReactiveCouchbaseConfiguration extends AbstractCouchbaseConfiguration {

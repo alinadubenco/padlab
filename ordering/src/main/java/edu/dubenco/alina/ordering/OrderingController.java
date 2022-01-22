@@ -10,20 +10,27 @@ import org.springframework.web.bind.annotation.RestController;
 import edu.dubenco.alina.ordering.repo.Order;
 import edu.dubenco.alina.ordering.repo.OrderRepository;
 
+/**
+ * This class handles the REST APIs for the Ordering microservice
+ *  
+ * @author Alina Dubenco
+ *
+ */
 @RestController
 public class OrderingController {
-	private static final String ORDERING_ORDERS = "/ordering/orders";
+	public static final String ORDERING = "ordering";
+	private static final String ORDERING_ORDERS = "/" + ORDERING + "/orders";
 
 	@Autowired
 	private OrderRepository orderRepository;
 	
 	@GetMapping(ORDERING_ORDERS)
-	public Iterable<Order> searchProducts() {
+	public Iterable<Order> searchOrders() {
 		return orderRepository.findAll();
 	}
 
 	@GetMapping(ORDERING_ORDERS + "/{id}")
-	public Order getProduct(@PathVariable String id) {
+	public Order getOrder(@PathVariable String id) {
 		return orderRepository.findById(id).orElseThrow();
 	}
 	

@@ -73,6 +73,11 @@ This microservice will expose the following REST APIs:
 		* Body: JSON object containing a list of products matching the search criteria. Each product in the list will contain the following properties: 
 		id, name, category, price, quantity
 
+	- Example request:
+	```
+	GET http://localhost:8080/warehouse/products?category=electronics&text=Samsung&priceMax=200
+	```
+	
 2. getProduct: get the complete information about one product
 	- Method: GET  
 	- Path: /warehouse/products/{id}  
@@ -87,6 +92,11 @@ This microservice will expose the following REST APIs:
 		* Content Type: application/json
 		* Body: JSON object containing the following properties: id, name, category, price, quantitydescription, characteristics, version
 
+	- Example request:
+	```
+	GET http://localhost:8080/warehouse/products/1/
+	```
+
 3. addProduct: add the definition of a new product
 	- Method: POST  
 	- Path: /warehouse/products/  
@@ -95,6 +105,20 @@ This microservice will expose the following REST APIs:
 		* Status Code: 200
 		* Content Type: application/json
 		* Body: JSON object containing the following properties: id, name, category, price, quantitydescription, characteristics, version
+
+	- Example request:
+	```
+	POST http://localhost:8080/warehouse/products/
+	Body:
+	{
+		"name": "Samsung A51",
+		"description": "Dual SIM, 128GB/4GB",
+		"category": "electronics",
+		"price": "300.00",
+		"characteristics": "ROM: 128GB; RAM: 4GB; OS: Android 10.0; Dimentions: 0.7 x 7.3 x 15.8 cm; 172 Grams",
+		"photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/...NgYx3UAeYSByyEwTBMEwf+L//Z"
+	}	
+	```
 
 4. updateProduct: update the definition of an existing product
 	- Method: PUT  
@@ -105,6 +129,22 @@ This microservice will expose the following REST APIs:
 		* Content Type: application/json
 		* Body: JSON object containing the following properties: id, name, category, price, quantitydescription, characteristics, version
 
+	- Example request:
+	```
+	PUT http://localhost:8080/warehouse/products/
+	Body:
+	{
+		"id": "52",
+		"name": "Samsung A51",
+		"description": "Dual SIM, 128GB/4GB",
+		"category": "electronics",
+		"price": "259.99",
+		"characteristics": "ROM: 128GB; RAM: 4GB; OS: Android 10.0; Dimentions: 0.7 x 7.3 x 15.8 cm; 172 Grams",
+		"photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/...NgYx3UAeYSByyEwTBMEwf+L//Z",
+		"version": "0"
+	}	
+	```
+
 5. supplyProducts - supply products to the warehouse (add quantities of products)
 	- Method: POST  
 	- Path: /warehouse/supply/  
@@ -113,6 +153,26 @@ This microservice will expose the following REST APIs:
 		* Status Code: 200
 		* Content Type: application/json
 
+	- Example request:
+	```
+	POST http://localhost:8080/warehouse/supply/
+	Body:
+	{
+		"number": "241",
+		"date": "2022-01-21T10:05:12",
+		"confirmed": "true",
+		"inputOutputs": [
+			{
+				"product": "52",
+				"quantity": "20"
+			},
+			{
+				"product": "2",
+				"quantity": "4"
+			}
+		]
+	}
+	```
 6. reserveProducts - reserve quantities of products
 	- Method: POST  
 	- Path: /warehouse/reservation/  
@@ -122,21 +182,49 @@ This microservice will expose the following REST APIs:
 		* Content Type: application/json
 		* Body: JSON object containing a single property: reservationId
 
+	- Example request:
+	```
+	POST http://localhost:8080/warehouse/reservation/
+	Body:
+	{
+		"number": "100027515",
+		"date": "2022-01-21T14:50:45",
+		"confirmed": "false",
+		"inputOutputs": [
+			{
+				"product": "52",
+				"quantity": "1"
+			},
+			{
+				"product": "2",
+				"quantity": "1"
+			}
+		]
+	}
+	```
 6. confirmReservation - confirm reserved quantities of products
 	- Method: PUT  
-	- Path: /warehouse/reservation/confirm  
+	- Path: /warehouse/reservation/{reservationId}/confirm  
 	- Body: JSON object containing a single property: reservationId    
 	- Successful result:
 		* Status Code: 200
 		* Content Type: application/json
 
+	- Example request:
+	```
+	PUT http://localhost:8080/warehouse/reservation/5434/confirm
+	```
 7. cancelReservation - calcel reserved quantities of products
 	- Method: PUT  
-	- Path: /warehouse/reservation/confirm  
+	- Path: /warehouse/reservation/{reservationId}/cancel  
 	- Body: JSON object containing a single property: reservationId    
 	- Successful result:
 		* Status Code: 200
 
+	- Example request:
+	```
+	PUT http://localhost:8080/warehouse/reservation/5434/cancel
+	```
 8. consolidateQuantities - recalculate quantities for all the operations that happened before the specified date.
 	- Method: PUT  
 	- Path: /warehouse/consolidate  
@@ -216,6 +304,7 @@ This microservice will expose the following REST APIs:
 		* Status Code: 200
 
 
+
 ### Gateway
 Gateway will handle the forwarding of all the REST API requests to microservices. 
 It will also do load-balancing.
@@ -240,9 +329,16 @@ This microservice will expose the following REST APIs:
 1. registerService: register a mincroservices instance. This API should be called by every microservice instance when it comes up.
 	- Method: POST  
 	- Path: /gateway/services/  
-	- Body: a JSON object containing all the information about the service instance: microservice type, host/IP, port.  
+	- Body: a Text containing 2 lines: 1st line - microservice type, 2nd line - microservice base URL.  
 	- Successful result:
 		* Status Code: 200
+	- Example:
+	```
+	POST http://localhost:8080/gateway/services/
+	Body:
+	ordering
+	http://localhost:8081/
+	```
 
 
 

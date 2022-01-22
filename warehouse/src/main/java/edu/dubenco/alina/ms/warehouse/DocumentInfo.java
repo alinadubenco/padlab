@@ -3,10 +3,18 @@ package edu.dubenco.alina.ms.warehouse;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * This class is used in REST APIs to receive and transmit information about a document 
+ * (either 'products supply' or 'products reservation').
+ * 
+ * @author Alina Dubenco
+ *
+ */
 public class DocumentInfo {
 	private long id;
 	private int number;
 	private Date date;
+	private List<InputOutputInfo> inputOutputs;
 	
 	public long getId() {
 		return id;
@@ -32,6 +40,5 @@ public class DocumentInfo {
 	public void setInputOutputs(List<InputOutputInfo> inputOutputs) {
 		this.inputOutputs = inputOutputs;
 	}
-	private List<InputOutputInfo> inputOutputs;
 
 }

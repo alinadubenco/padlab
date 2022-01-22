@@ -9,6 +9,13 @@ import org.springframework.context.annotation.Configuration;
 import edu.dubenco.alina.ms.warehouse.repo.Product;
 import edu.dubenco.alina.ms.warehouse.repo.ProductRepository;
 
+/**
+ * This class is used to pre-load some data to DB at start-up.
+ * TODO: Remove this class
+ * 
+ * @author Alina Dubenco
+ *
+ */
 @Configuration
 class LoadDatabase {
 

@@ -9,6 +9,12 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
+/**
+ * This class holds information about a document - either 'products supply' or 'products reservation'
+ * 
+ * @author Alina Dubenco
+ *
+ */
 @Entity
 public class Document {
 	private @Id @GeneratedValue Long id;

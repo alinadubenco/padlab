@@ -1,6 +1,8 @@
 package edu.dubenco.alina.gateway;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -8,9 +10,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -24,7 +23,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
 
+/**
+ * This class receives the requests from clients and forwards them to the correct microservice.<br/>
+ * It uses {@link ServiceRegistry} for Service Discovery, Load Balancing, Circuit Breaker, etc.
+ *  
+ * @author Alina Dubenco
+ *
+ */
 @WebServlet(urlPatterns = "/*", loadOnStartup = 1)
 public class GatewayServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -60,14 +67,60 @@ public class GatewayServlet extends HttpServlet {
 	@PostConstruct
 	public void init() {
 		httpClient = getHttpClient(timeoutSeconds, concurrentThreads);
-		serviceRegistry.addService("ordering", "http://localhost:8081/");
-		serviceRegistry.addService("warehouse", "http://localhost:8082/");
+//		serviceRegistry.addService("ordering", "http://localhost:81/");
+//		serviceRegistry.addService("ordering", "http://localhost:8081/");
+//		serviceRegistry.addService("warehouse", "http://localhost:82/");
+//		serviceRegistry.addService("warehouse", "http://localhost:8082/");
 	}
 	
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		LOG.info("------------- GET ------------------------");
-		
+		callService(HttpMethod.GET, request, response);
+	}
+
+	@Override
+	public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		String path = request.getPathInfo();
+		if(path != null && path.startsWith("/gateway/services")) {
+			handleServiceRegistration(request, response);
+		} else {
+			callService(HttpMethod.POST, request, response);
+		}
+	}
+
+	@Override
+	public void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		callService(HttpMethod.PUT, request, response);
+	}
+
+	@Override
+	public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		callService(HttpMethod.DELETE, request, response);
+	}
+	
+	private void handleServiceRegistration(HttpServletRequest request, HttpServletResponse response)
+			throws IOException {
+		BufferedReader rdr = request.getReader();
+		String type = rdr.readLine();
+		String error = null;
+		if(type == null) {
+			error = "Microservice Type has not been specified";
+			LOG.warn(error);
+		} else {
+			String url = rdr.readLine();
+			if(url == null) {
+				error = "Microservice Type has not been specified";
+				LOG.warn(error);
+			} else {
+				serviceRegistry.addService(type, url);
+			}
+		}
+		if(error != null) {
+			response.sendError(400, error);
+		}
+	}
+
+	private void callService(HttpMethod method, HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String path = request.getPathInfo();
 		if(path != null && path.startsWith("/")) {
 			path = path.substring(1);
@@ -81,44 +134,77 @@ public class GatewayServlet extends HttpServlet {
 		}
 		
 		String serviceType = path.substring(0, serviceTypeEndIdx);
-		ServiceInfo si = serviceRegistry.getServiceInfo(serviceType);
-		//TODO: treat null
-		String serviceUrl = si.getUrl();
-		String query = request.getQueryString();
-		String uri = serviceUrl + path;
-		if(query != null) {
-			uri = uri + query;
-		}
-		String[] headers = getRequestHeaders(request);
-        
-		HttpRequest internalRequest = HttpRequest.newBuilder()
-                .GET()
-                .uri(URI.create(uri))
-                .headers(headers)
-                .build();
-        
         PrintWriter out = response.getWriter();
-        HttpResponse<String> internalResponse;
-		try {
-			internalResponse = httpClient.send(internalRequest, HttpResponse.BodyHandlers.ofString());
-	        response.setStatus(internalResponse.statusCode());
-			internalResponse.headers().map().forEach((key, valArray) -> {
-				if(!isRestrictedHttpHeader(key)) {
-					valArray.forEach(val -> response.setHeader(key, val));
-				}
-	        });
-			
-			String body = internalResponse.body();
+		
+		ServiceInfo si = serviceRegistry.getServiceInfo(serviceType);
 
-	        out.print(body);
+		while(si != null) {
+			String serviceUrl = si.getUrl();
+			String query = request.getQueryString();
+			String uri = serviceUrl + path;
+			if(query != null) {
+				uri = uri + "?" + query;
+			}
+			String[] headers = getRequestHeaders(request);
+	
+			InputStream requestBodyInputStream = request.getInputStream();
+			
+			HttpRequest outboundHttpRequest = buildOutboundRequest(method, uri, headers, requestBodyInputStream);
 	        
-	        out.flush();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			response.setStatus(500);
-	        out.print("The forwarding has been interrupted.");
+			try {
+				HttpResponse<String> outboundHttpResponse = httpClient.send(outboundHttpRequest, HttpResponse.BodyHandlers.ofString());
+		        response.setStatus(outboundHttpResponse.statusCode());
+				outboundHttpResponse.headers().map().forEach((key, valArray) -> {
+					if(!isRestrictedHttpHeader(key)) {
+						valArray.forEach(val -> response.setHeader(key, val));
+					}
+		        });
+				
+				String body = outboundHttpResponse.body();
+		        out.print(body);
+		        
+		        return;
+		        
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				response.setStatus(500);
+		        out.print("The forwarding has been interrupted.");
+		        
+		        return;
+
+			} catch (IOException ex) {
+				serviceRegistry.handleCircuitBreakingLogic(si);
+				// try another service instance
+				si = serviceRegistry.getServiceInfo(serviceType);
+			}
 		}
 		
+		
+		response.setStatus(500);
+        out.print("There are no healthy microservices of type '" + serviceType + "'");
+	}
+
+	private HttpRequest buildOutboundRequest(HttpMethod method, String uri, String[] headers,
+			InputStream requestBodyInputStream) {
+		HttpRequest.Builder builder = HttpRequest.newBuilder()
+		        .uri(URI.create(uri))
+		        .headers(headers);
+		
+		switch(method) {
+		case POST:
+			builder = builder.POST(HttpRequest.BodyPublishers.ofInputStream(() -> requestBodyInputStream));
+			break;
+		case PUT:
+			builder = builder.PUT(HttpRequest.BodyPublishers.ofInputStream(() -> requestBodyInputStream));
+			break;
+		case DELETE:
+			builder = builder.DELETE();
+		default:
+			builder = builder.GET();
+		}
+		
+		HttpRequest internalRequest = builder.build();
+		return internalRequest;
 	}
 
 	private String[] getRequestHeaders(HttpServletRequest request) {
@@ -147,24 +233,6 @@ public class GatewayServlet extends HttpServlet {
 		return false;
 	}
 
-	@Override
-	public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		LOG.info("------------- POST ------------------------");
-		doGet(request, response);
-	}
-
-	@Override
-	public void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		LOG.info("------------- PUT ------------------------");
-		doGet(request, response);
-	}
-
-	@Override
-	public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		LOG.info("------------- DELETE ------------------------");
-		doGet(request, response);
-	}
-	
 	private HttpClient getHttpClient(long timeoutSeconds, int concurrentThreads) {
         return HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_1_1)

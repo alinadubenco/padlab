@@ -6,6 +6,12 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
+/**
+ * This class holds balances of product quantities as calculated at a specific date.
+ * 
+ * @author Alina Dubenco
+ *
+ */
 @Entity
 public class Balance {
 	private @Id @GeneratedValue Long id;
