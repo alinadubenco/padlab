@@ -1,5 +1,8 @@
 package edu.dubenco.alina.ordering.repo;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 import org.springframework.data.couchbase.core.mapping.Document;
 import org.springframework.data.couchbase.core.mapping.Field;
 import org.springframework.data.couchbase.core.mapping.id.IdAttribute;
@@ -12,16 +15,44 @@ import org.springframework.data.couchbase.core.mapping.id.IdAttribute;
  */
 @Document
 public class Order {
-	@IdAttribute private String id;
+	@IdAttribute private int id;
 	@Field private String user;
 	@Field private String custName;
 	@Field private String address;
 	@Field private String city;
+	@Field private List<OrderDetail> details;
+	@Field private BigDecimal amount;
+	@Field private BigDecimal taxAmount;
+	@Field private BigDecimal deliveryAmount;
 	
-	public String getId() {
+	public List<OrderDetail> getDetails() {
+		return details;
+	}
+	public void setDetails(List<OrderDetail> details) {
+		this.details = details;
+	}
+	public BigDecimal getAmount() {
+		return amount;
+	}
+	public void setAmount(BigDecimal amount) {
+		this.amount = amount;
+	}
+	public BigDecimal getTaxAmount() {
+		return taxAmount;
+	}
+	public void setTaxAmount(BigDecimal taxAmount) {
+		this.taxAmount = taxAmount;
+	}
+	public BigDecimal getDeliveryAmount() {
+		return deliveryAmount;
+	}
+	public void setDeliveryAmount(BigDecimal deliveryAmount) {
+		this.deliveryAmount = deliveryAmount;
+	}
+	public int getId() {
 		return id;
 	}
-	public void setId(String id) {
+	public void setId(int id) {
 		this.id = id;
 	}
 	public String getUser() {

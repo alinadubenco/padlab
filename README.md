@@ -180,7 +180,7 @@ This microservice will expose the following REST APIs:
 	- Successful result:
 		* Status Code: 200
 		* Content Type: application/json
-		* Body: JSON object containing a single property: reservationId
+		* Body: reservationId as text
 
 	- Example request:
 	```
@@ -264,6 +264,30 @@ This microservice will expose the following REST APIs:
 		* Status Code: 200
 		* Content Type: application/json
 		* Body: JSON object containing all the information about the purchase order: order ID, order date-time, customer info, shipping address, list of product informations (product ID, quantity , price).
+
+	- Example request:
+	```
+	POST http://localhost:8080/ordering/orders/
+	Body:
+	{
+		"id": "4321",
+        "user": "user1",
+        "custName": "Alina Dubenco",
+        "address": "Alba Iulia, 41",
+        "city": "Chisinau",
+        "details": [
+            {
+                "productId": "1",
+                "price": "120.50",
+                "quantity": "1"
+            },
+            {
+                "productId": "2",
+                "price": "10.99",
+                "quantity": "2"
+            }
+        ]
+	}		```
 
 2. searchOrders: search for the existing purchase orders
 	- Method: GET  

@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -80,16 +83,22 @@ public class WarehouseController {
 		}
 	}
 	
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@PostMapping("/" + WAREHOUSE + "/reservation")
-	public DocumentInfo reserveProducts(@RequestBody DocumentInfo reservationInfo) {
+	public String reserveProducts(@RequestBody DocumentInfo reservationInfo) {
 		Document doc = new Document(reservationInfo.getNumber(), reservationInfo.getDate(), false);
 		doc = docRepository.save(doc);
 		for(InputOutputInfo r : reservationInfo.getInputOutputs()) {
-			InputOutput io = new InputOutput(doc, r.getProduct(), r.getQuantity());
+			
+			int availableQuantity = getAvailableProductQuantity(r.getProduct());
+			if(availableQuantity < r.getQuantity()) {
+				throw new RuntimeException("Not enough quantity for product " + r.getProduct());
+			}
+			
+			InputOutput io = new InputOutput(doc, r.getProduct(), -1 * r.getQuantity());
 			ioRepository.save(io);
 		}
-		reservationInfo.setId(doc.getId());
-		return reservationInfo;
+		return doc.getId().toString();
 	}
 
 	@PutMapping("/" + WAREHOUSE + "/reservation/{reservationId}/confirm")
@@ -99,5 +108,24 @@ public class WarehouseController {
 			reservation.get().setConfirmed(true);
 			docRepository.save(reservation.get());
 		}
+	}
+	
+	@PutMapping("/" + WAREHOUSE + "/reservation/{reservationId}/cancel")
+	public void cancelReservation(@PathVariable long reservationId) {
+		//TODO
+	}
+	
+	private int getAvailableProductQuantity(long productId) {
+		List<Integer> quantities = balanceRepository.findInitialProductQuantity(productId);
+		int iniQuantity = 0;
+		if(quantities != null && !quantities.isEmpty()) {
+			iniQuantity = quantities.get(0);
+		}
+		int ioSum = ioRepository.findProductInputOutputSum(productId);
+		int quanttity = iniQuantity + ioSum;
+		if(quanttity < 0) {
+			quanttity = 0;
+		}
+		return quanttity;
 	}
 }
