@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,7 +59,10 @@ public class WarehouseController {
 
 	@GetMapping(WAREHOUSE_PRODUCTS + "/{id}")
 	public Product getProduct(@PathVariable Long id) {
-		return productRepository.findById(id).orElseThrow();
+		Product prod = productRepository.findById(id).orElseThrow();
+		int availableQuantity = getAvailableProductQuantity(id);
+		prod.setQuantity(availableQuantity);
+		return prod;
 	}
 
 	@PostMapping(WAREHOUSE_PRODUCTS)
@@ -110,9 +112,18 @@ public class WarehouseController {
 		}
 	}
 	
+	
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@PutMapping("/" + WAREHOUSE + "/reservation/{reservationId}/cancel")
 	public void cancelReservation(@PathVariable long reservationId) {
-		//TODO
+		Optional<Document> docOpt = docRepository.findById(reservationId);
+		if(docOpt.isPresent()) {
+			Document doc = docOpt.get();
+			for(InputOutput io : doc.getInputOutputs()) {
+				ioRepository.deleteById(io.getId());
+			}
+			docRepository.deleteById(doc.getId());
+		}
 	}
 	
 	private int getAvailableProductQuantity(long productId) {
