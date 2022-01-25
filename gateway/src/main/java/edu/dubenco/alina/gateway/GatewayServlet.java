@@ -59,10 +59,13 @@ public class GatewayServlet extends HttpServlet {
 	@Value("${http.client.threads}")
 	private int concurrentThreads;
 	
-	protected HttpClient httpClient;
+	private HttpClient httpClient;
 	
 	@Autowired
 	ServiceRegistry serviceRegistry;
+	
+	@Autowired
+	CacheClient cacheClient;
 	
 	@PostConstruct
 	public void init() {
@@ -75,7 +78,18 @@ public class GatewayServlet extends HttpServlet {
 	
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		callService(HttpMethod.GET, request, response);
+		String url = request.getPathInfo() + "?" + request.getQueryString();
+		SimpleHttpResponse simpleResponce = cacheClient.getCache(url);
+		
+		if(simpleResponce == null) {
+			simpleResponce = callService(HttpMethod.GET, request, response);
+			
+			if(simpleResponce.getStatusCode() == 200) {
+				cacheClient.addCache(url, simpleResponce);
+			}
+		}
+		
+		sendResponseToClient(simpleResponce, response);
 	}
 
 	@Override
@@ -84,18 +98,21 @@ public class GatewayServlet extends HttpServlet {
 		if(path != null && path.startsWith("/gateway/services")) {
 			handleServiceRegistration(request, response);
 		} else {
-			callService(HttpMethod.POST, request, response);
+			SimpleHttpResponse simpleResponce = callService(HttpMethod.POST, request, response);
+			sendResponseToClient(simpleResponce, response);
 		}
 	}
 
 	@Override
 	public void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		callService(HttpMethod.PUT, request, response);
+		SimpleHttpResponse simpleResponce = callService(HttpMethod.PUT, request, response);
+		sendResponseToClient(simpleResponce, response);
 	}
 
 	@Override
 	public void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		callService(HttpMethod.DELETE, request, response);
+		SimpleHttpResponse simpleResponce = callService(HttpMethod.DELETE, request, response);
+		sendResponseToClient(simpleResponce, response);
 	}
 	
 	private void handleServiceRegistration(HttpServletRequest request, HttpServletResponse response)
@@ -120,7 +137,7 @@ public class GatewayServlet extends HttpServlet {
 		}
 	}
 
-	private void callService(HttpMethod method, HttpServletRequest request, HttpServletResponse response) throws IOException {
+	private SimpleHttpResponse callService(HttpMethod method, HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String path = request.getPathInfo();
 		if(path != null && path.startsWith("/")) {
 			path = path.substring(1);
@@ -134,7 +151,6 @@ public class GatewayServlet extends HttpServlet {
 		}
 		
 		String serviceType = path.substring(0, serviceTypeEndIdx);
-        PrintWriter out = response.getWriter();
 		
 		ServiceInfo si = serviceRegistry.getServiceInfo(serviceType);
 
@@ -150,27 +166,20 @@ public class GatewayServlet extends HttpServlet {
 			InputStream requestBodyInputStream = request.getInputStream();
 			
 			HttpRequest outboundHttpRequest = buildOutboundRequest(method, uri, headers, requestBodyInputStream);
+			
+			SimpleHttpResponse simpleResponse;
 	        
 			try {
 				HttpResponse<String> outboundHttpResponse = httpClient.send(outboundHttpRequest, HttpResponse.BodyHandlers.ofString());
-		        response.setStatus(outboundHttpResponse.statusCode());
-				outboundHttpResponse.headers().map().forEach((key, valArray) -> {
-					if(!isRestrictedHttpHeader(key)) {
-						valArray.forEach(val -> response.setHeader(key, val));
-					}
-		        });
-				
-				String body = outboundHttpResponse.body();
-		        out.print(body);
+				simpleResponse = new SimpleHttpResponse(outboundHttpResponse);
 		        
-		        return;
+		        return simpleResponse;
 		        
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
-				response.setStatus(500);
-		        out.print("The forwarding has been interrupted.");
+				simpleResponse = new SimpleHttpResponse(500, "The forwarding has been interrupted.");
 		        
-		        return;
+		        return simpleResponse;
 
 			} catch (IOException ex) {
 				serviceRegistry.handleCircuitBreakingLogic(si);
@@ -179,9 +188,7 @@ public class GatewayServlet extends HttpServlet {
 			}
 		}
 		
-		
-		response.setStatus(500);
-        out.print("There are no healthy microservices of type '" + serviceType + "'");
+		return new SimpleHttpResponse(500, "There are no healthy microservices of type '" + serviceType + "'");
 	}
 
 	private HttpRequest buildOutboundRequest(HttpMethod method, String uri, String[] headers,
@@ -224,7 +231,18 @@ public class GatewayServlet extends HttpServlet {
 		return headers;
 	}
 	
-	private boolean isRestrictedHttpHeader(String headerName) {
+	private void sendResponseToClient(SimpleHttpResponse simpleResponce, HttpServletResponse response) throws IOException {
+        response.setStatus(simpleResponce.getStatusCode());
+        simpleResponce.getHeaders().forEach((key, valArray) -> {
+			if(!isRestrictedHttpHeader(key)) {
+				valArray.forEach(val -> response.setHeader(key, val));
+			}
+        });
+        PrintWriter out = response.getWriter();
+        out.print(simpleResponce.getBody());
+	}
+	
+	public static boolean isRestrictedHttpHeader(String headerName) {
 		for(String restrictedHeader : restrictedHeaders) {
 			if(restrictedHeader.equalsIgnoreCase(headerName)) {
 				return true;
