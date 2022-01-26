@@ -9,6 +9,9 @@ For other laboratories, please see the corresponding branch:
 * [System funnctionality](#system-funnctionality)
 * [System architecture](#system-architecture)
   * [Warehouse microservice](#warehouse-microservice)
+  * [Ordering microservice](#ordering-microservice)
+  * [Gateway](#gateway)
+  * [Cache](#cache)
 
 ----------------------------------------------------
 
