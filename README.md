@@ -4,6 +4,14 @@ For other laboratories, please see the corresponding branch:
 1. Lab1 -> branch "lab1"
 2. Lab2 -> branch "lab2"
 
+----------------------------------------------------
+## Index
+* [System funnctionality](#system-funnctionality)
+* [System architecture](#system-architecture)
+  * [Warehouse microservice](#warehouse-microservice)
+
+----------------------------------------------------
+
 ## System funnctionality
 This is the implementation of a simple e-commerce system which will handle the ordering and warehouse operations.
 
