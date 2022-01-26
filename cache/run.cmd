@@ -1,0 +1,1 @@
+java -jar target\cache-0.0.1-SNAPSHOT.jar edu.dubenco.alina.cache.CacheApplication

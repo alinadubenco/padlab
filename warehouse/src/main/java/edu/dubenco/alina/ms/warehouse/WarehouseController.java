@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,8 @@ import edu.dubenco.alina.ms.warehouse.repo.ProductRepository;
  */
 @RestController
 public class WarehouseController {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(WarehouseController.class);
 
 	public static final String WAREHOUSE = "warehouse";
 	private static final String WAREHOUSE_PRODUCTS = "/" + WAREHOUSE + "/products";
@@ -47,6 +51,7 @@ public class WarehouseController {
 	@Autowired
 	private BalanceRepository balanceRepository;
 	
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@GetMapping(WAREHOUSE_PRODUCTS)
 	public List<Product> searchProducts(
 			@RequestParam(name="text") String txt, 
@@ -54,29 +59,37 @@ public class WarehouseController {
 			@RequestParam(name="minPrice", defaultValue = "0") BigDecimal minPrice, 
 			@RequestParam(name="maxPrice", defaultValue = "999999999") BigDecimal maxPrice) {
 		
+		LOG.debug("Searching products");
 		return productRepository.find(txt, category, minPrice, maxPrice);
 	}
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@GetMapping(WAREHOUSE_PRODUCTS + "/{id}")
 	public Product getProduct(@PathVariable Long id) {
+		LOG.debug("Getting product details");
 		Product prod = productRepository.findById(id).orElseThrow();
 		int availableQuantity = getAvailableProductQuantity(id);
 		prod.setQuantity(availableQuantity);
 		return prod;
 	}
-
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@PostMapping(WAREHOUSE_PRODUCTS)
 	public Product addProduct(@RequestBody Product product) {
-		return productRepository.save(product);
-	}
-
-	@PutMapping(WAREHOUSE_PRODUCTS)
-	public Product updateProduct(@RequestBody Product product) {
+		LOG.debug("Additng product");
 		return productRepository.save(product);
 	}
 	
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	@PutMapping(WAREHOUSE_PRODUCTS)
+	public Product updateProduct(@RequestBody Product product) {
+		LOG.debug("Updating product");
+		return productRepository.save(product);
+	}
+	
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@PostMapping("/" + WAREHOUSE + "/supply")
 	public void supplyProduct(@RequestBody DocumentInfo supplyInfo) {
+		LOG.debug("Supplying products");
 		Document doc = new Document(supplyInfo.getNumber(), supplyInfo.getDate(), true);
 		doc = docRepository.save(doc);
 		for(InputOutputInfo r : supplyInfo.getInputOutputs()) {
@@ -88,12 +101,14 @@ public class WarehouseController {
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@PostMapping("/" + WAREHOUSE + "/reservation")
 	public String reserveProducts(@RequestBody DocumentInfo reservationInfo) {
+		LOG.debug("Reserving products");
 		Document doc = new Document(reservationInfo.getNumber(), reservationInfo.getDate(), false);
 		doc = docRepository.save(doc);
 		for(InputOutputInfo r : reservationInfo.getInputOutputs()) {
 			
 			int availableQuantity = getAvailableProductQuantity(r.getProduct());
 			if(availableQuantity < r.getQuantity()) {
+				LOG.warn("\"Not enough quantity for product \" + r.getProduct()");
 				throw new RuntimeException("Not enough quantity for product " + r.getProduct());
 			}
 			
@@ -103,8 +118,10 @@ public class WarehouseController {
 		return doc.getId().toString();
 	}
 
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@PutMapping("/" + WAREHOUSE + "/reservation/{reservationId}/confirm")
 	public void confirmReservation(@PathVariable long reservationId) {
+		LOG.debug("Confirming reservation");
 		Optional<Document> reservation = docRepository.findById(reservationId);
 		if(reservation.isPresent()) {
 			reservation.get().setConfirmed(true);
@@ -116,6 +133,7 @@ public class WarehouseController {
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	@PutMapping("/" + WAREHOUSE + "/reservation/{reservationId}/cancel")
 	public void cancelReservation(@PathVariable long reservationId) {
+		LOG.debug("Cancelling reservation");
 		Optional<Document> docOpt = docRepository.findById(reservationId);
 		if(docOpt.isPresent()) {
 			Document doc = docOpt.get();
@@ -127,15 +145,20 @@ public class WarehouseController {
 	}
 	
 	private int getAvailableProductQuantity(long productId) {
-		List<Integer> quantities = balanceRepository.findInitialProductQuantity(productId);
-		int iniQuantity = 0;
-		if(quantities != null && !quantities.isEmpty()) {
-			iniQuantity = quantities.get(0);
-		}
-		int ioSum = ioRepository.findProductInputOutputSum(productId);
-		int quanttity = iniQuantity + ioSum;
-		if(quanttity < 0) {
-			quanttity = 0;
+		int quanttity = 0;
+		try {
+			int iniQuantity = 0;
+			List<Integer> quantities = balanceRepository.findInitialProductQuantity(productId);
+			if(quantities != null && !quantities.isEmpty()) {
+				iniQuantity = quantities.get(0);
+			}
+			int ioSum = ioRepository.findProductInputOutputSum(productId);
+			quanttity = iniQuantity + ioSum;
+			if(quanttity < 0) {
+				quanttity = 0;
+			}
+		} catch(Exception e) {
+			LOG.error("Failed to get available product quantity. Will use 0.");
 		}
 		return quanttity;
 	}

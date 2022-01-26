@@ -270,7 +270,7 @@ This microservice will expose the following REST APIs:
 	POST http://localhost:8080/ordering/orders/
 	Body:
 	{
-		"id": "4321",
+        "id": "4321",
         "user": "user1",
         "custName": "Alina Dubenco",
         "address": "Alba Iulia, 41",
@@ -287,7 +287,8 @@ This microservice will expose the following REST APIs:
                 "quantity": "2"
             }
         ]
-	}		```
+	}		
+	```
 
 2. searchOrders: search for the existing purchase orders
 	- Method: GET  

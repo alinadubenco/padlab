@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -31,6 +33,8 @@ import edu.dubenco.alina.ordering.repo.OrderRepository;
  */
 @RestController
 public class OrderingController {
+	private static final Logger LOG = LoggerFactory.getLogger(OrderingController.class);
+	
 	public static final String ORDERING = "ordering";
 	private static final String ORDERING_ORDERS = "/" + ORDERING + "/orders";
 	
@@ -44,22 +48,25 @@ public class OrderingController {
 	
 	@GetMapping(ORDERING_ORDERS)
 	public Iterable<Order> searchOrders() {
+		LOG.debug("Searching orders");
 		return orderRepository.findAll();
 	}
 
 	@GetMapping(ORDERING_ORDERS + "/{id}")
 	public Order getOrder(@PathVariable String id) {
+		LOG.debug("Getting order details");
 		return orderRepository.findById(id).orElseThrow();
 	}
 	
 	@PostMapping(ORDERING_ORDERS)
 	public Order placeOrder(@RequestBody Order order) {
-		
+		LOG.debug("Placing order");
 		String reservationId = reserveProductsInWarehouse(order);
 		
 		try {
 			order = orderRepository.save(order);
 		} catch (Exception e) {
+			LOG.warn("Failed to save order. Cancelling reservation.");
 			cancelReservedProducts(reservationId);
 			throw e;
 		}
