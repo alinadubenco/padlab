@@ -11,10 +11,13 @@ import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
-@Service
+/**
+ * This method implements the client side of the communication with the Cache.
+ * 
+ * @author Alina Dubenco
+ *
+ */
 public class CacheClient {
 	private static final Logger LOG = LoggerFactory.getLogger(CacheClient.class);
 	
@@ -22,25 +25,40 @@ public class CacheClient {
     private PrintWriter out;
     private BufferedReader in;
 	
-    @Value("${cache.host}")
     private String host;
 
-    @Value("${cache.port}")
     private int port;
     
+    public CacheClient(String host, int port) {
+    	this.host = host;
+    	this.port = port;
+    }
+    
+    /**
+     * This method establishes the connection with the Cache
+     */
     @PostConstruct
     public void startConnection() {
         try {
 			clientSocket = new Socket(host, port);
 	        in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 	        out = new PrintWriter(clientSocket.getOutputStream(), true);
+	        
+	        LOG.info("CacheClient has connected to Cache");
 		} catch (Exception e) {
+			LOG.error("Failed to connect to Cache.", e);
+			
 			safeClose(clientSocket);
 			safeClose(in);
 			safeClose(out);
 		}
     }
 
+    /**
+     * This method is used to add a response to the Cache.
+     * @param url - the url for which the response has been received
+     * @param httpResponse - the response to be cached
+     */
     public void addCache(String url, SimpleHttpResponse httpResponse) {
         out.println("-=|{ADD_CACHE}|=-");
         out.println(url);
@@ -59,11 +77,17 @@ public class CacheClient {
 			if(!"-=|{ADD_SUCCESS}|=-".equals(resp)) {
 				throw new RuntimeException("Wrong acknowledgement from Cache: " + resp);
 			}
+			LOG.debug("The response for '{}' has been added to Cache", url);
 		} catch (IOException e) {
 			LOG.error("Failed to get acknowledgement from Cache", e);
 		}
     }
     
+    /**
+     * This method is used to retrieve the cached response for the specified url.
+     * @param url - the url whose cached response should be retrieved
+     * @return the response or null (if the response for the specified url is not available in Cache)
+     */
     public SimpleHttpResponse getCache(String url) {
         SimpleHttpResponse simpleResponse = new SimpleHttpResponse(200, null);
     	try {
@@ -74,9 +98,11 @@ public class CacheClient {
 	        while ((inputLine = in.readLine()) != null) {
 	            if ("-=|{NOT_FOUND}|=-".equals(inputLine)) {
 	            	simpleResponse = null;
+	            	LOG.debug("Response for '{}' was not found in Cache", url);
 	            	break;
 	            } else if("-=|{END}|=-".equals(inputLine)) {
 	            	simpleResponse.setBody(body.toString());
+	            	LOG.debug("Response for '{}' was retrieved from Cache", url);
 	            	break;
 	            } else if("-=|{HEADERS}|=-".equals(inputLine)){
 	            	readHeaders(simpleResponse);
@@ -90,6 +116,15 @@ public class CacheClient {
     	}
         
         return simpleResponse;
+    }
+    
+    /**
+     * Closes the connection to the Cache
+     */
+    public void stopConnection() {
+		safeClose(clientSocket);
+		safeClose(in);
+		safeClose(out);
     }
     
     private void readHeaders(SimpleHttpResponse simpleResponse ) throws IOException {
@@ -108,12 +143,6 @@ public class CacheClient {
         }
     }
 
-    public void stopConnection() {
-		safeClose(clientSocket);
-		safeClose(in);
-		safeClose(out);
-    }
-    
     private void safeClose(Closeable closable) {
     	if(closable == null) {
     		return;

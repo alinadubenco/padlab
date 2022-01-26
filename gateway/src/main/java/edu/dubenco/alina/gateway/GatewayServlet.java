@@ -65,7 +65,7 @@ public class GatewayServlet extends HttpServlet {
 	ServiceRegistry serviceRegistry;
 	
 	@Autowired
-	CacheClient cacheClient;
+	CacheClientsPool cacheClientPool;
 	
 	@PostConstruct
 	public void init() {
@@ -79,13 +79,15 @@ public class GatewayServlet extends HttpServlet {
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String url = request.getPathInfo() + "?" + request.getQueryString();
-		SimpleHttpResponse simpleResponce = cacheClient.getCache(url);
+		
+		SimpleHttpResponse simpleResponce = getResponseFromCache(url);
 		
 		if(simpleResponce == null) {
+			LOG.debug("Response for URL '{}' was not found in Cache. Calling microservice.", url);
 			simpleResponce = callService(HttpMethod.GET, request, response);
 			
 			if(simpleResponce.getStatusCode() == 200) {
-				cacheClient.addCache(url, simpleResponce);
+				addResponseToCache(url, simpleResponce);
 			}
 		}
 		
@@ -167,6 +169,7 @@ public class GatewayServlet extends HttpServlet {
 			
 			HttpRequest outboundHttpRequest = buildOutboundRequest(method, uri, headers, requestBodyInputStream);
 			
+			LOG.debug("Calling microservice of type: '{}', URI: '{}'", serviceType, uri);
 			SimpleHttpResponse simpleResponse;
 	        
 			try {
@@ -182,12 +185,13 @@ public class GatewayServlet extends HttpServlet {
 		        return simpleResponse;
 
 			} catch (IOException ex) {
+				LOG.error("Failed to call microservice of type: '{}', URI: {}. Will try another instance (if available). Error: {}", serviceType, uri, ex.getMessage());
 				serviceRegistry.handleCircuitBreakingLogic(si);
 				// try another service instance
 				si = serviceRegistry.getServiceInfo(serviceType);
 			}
 		}
-		
+		LOG.error("There are no healthy microservices of type '{}'", serviceType);
 		return new SimpleHttpResponse(500, "There are no healthy microservices of type '" + serviceType + "'");
 	}
 
@@ -249,6 +253,32 @@ public class GatewayServlet extends HttpServlet {
 			}
 		}
 		return false;
+	}
+
+	private SimpleHttpResponse getResponseFromCache(String url) {
+		SimpleHttpResponse simpleResponce = null;
+		CacheClient cacheClient = null;
+		try {
+			cacheClient = cacheClientPool.borrowClient();
+			if(cacheClient != null) {
+				simpleResponce = cacheClient.getCache(url);
+			}
+		} finally {
+			cacheClientPool.returnClient(cacheClient);
+		}
+		return simpleResponce;
+	}
+
+	private void addResponseToCache(String url, SimpleHttpResponse simpleResponce) {
+		CacheClient cacheClient = null;
+		try {
+			cacheClient = cacheClientPool.borrowClient();
+			if(cacheClient != null) {
+				cacheClient.addCache(url, simpleResponce);
+			}
+		} finally {
+			cacheClientPool.returnClient(cacheClient);
+		}
 	}
 
 	private HttpClient getHttpClient(long timeoutSeconds, int concurrentThreads) {

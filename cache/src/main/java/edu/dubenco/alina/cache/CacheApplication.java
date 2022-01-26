@@ -9,6 +9,12 @@ import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This is the main class of the Cache application
+ * .
+ * @author Alina Dubenco
+ *
+ */
 public class CacheApplication {
 	private static final Logger LOG = LoggerFactory.getLogger(CacheApplication.class);
 

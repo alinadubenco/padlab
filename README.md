@@ -336,15 +336,20 @@ In addition, the Gateway will decide what should be cached and will return the c
 
 All the communications in our e-commerce system will go through the Gateway:
 - clients will send the requests to Gateway    
-- when a microservice needs to call a REST API from another microservice, it will send the request to Gateway and Gateway  
+- when a microservice needs to call a REST API from another microservice, it will send the request to Gateway  
 - the Gateway will decide which microservice and which instance of that microservice should process the request
 - the Gateway will forward the requests to the correct microservice instance
 - when the Gateway gets the response from the microservice, it will forward the response to the client that has called the API
 
+The communication with the Cache server will be done via TCP/IP using a custom-defined protocol (see below the section about the Cache).    
+In order to enable multiple threads to call Cache server in parallel, a pool of CacheClients will be maintained.    
+Whenever a thread needs to communicate with the Cache server, it will borrow a CacheClient from the pool, will communicate with the Cache server and then will return the CacheClient to the pool.    
+Each CacheClient in the pool will keep the connection to the Cache server open (Keep-Alive Connection).  
+
 #### The following technologies will be used:
 1. Programming language: Java 11
-2. Frameworks: Spring Boot, Servlet, Java 11 standard HTTP Client API
-3. Protocol: HTTP
+2. Frameworks: Spring Boot, Servlet, Java 11 standard HTTP Client API, Socket, Apache Commons Pool
+3. Protocol: HTTP, TCP/IP
 
 #### The REST APIs
 The Path of all the REST APIs of this microservice will start with /ordering
@@ -367,40 +372,74 @@ This microservice will expose the following REST APIs:
 
 
 ### Cache
-The Cache will be used to store for a pre-defined period of time responses to "GET" requests.
+The Cache will be used to store for a pre-defined period of time responses to "GET" requests.    
+
+The Cache server will listen for client connection on the port specified using the "-Dserver.port" command option. Default value is 8081.
+Once a client connects, a new Socket is open and all the communication with that client will happen via that Socket in a separate thread.
+The number of threads is configurable via "-Dmax.threads" command option. Default value is 10.    
+The responces will be held in Cache for at least the duration specified by "-Dexpiry.duration.seconds" command option. Default value is 120 (2 minutes).
 
 #### The following technologies will be used:
 1. Programming language: Java 11
-2. Frameworks: Spring Boot, Spring Web, Google Guava Cache (https://github.com/google/guava/wiki/CachesExplained)
-4. Protocol: HTTP, REST APIs
+2. Frameworks: ServerSocket, Google Guava Cache (https://github.com/google/guava/wiki/CachesExplained)
+4. Protocol: TCP/IP, Custom application protocol 
 
-#### The REST APIs
-The Path of all the REST APIs of this microservice will start with /cache
-This service will expose the following REST APIs:
+#### Custom Application Protocol
+The client can send the following commands:
 
-1. addCache: add a response to the Cache
-	- Method: POST  
-	- Path: /cache/responses/{url}  
-	- Parameters:  
+1. -=|{ADD_CACHE}|=-: add the response for a URL to the Cache    
+The "-=|{ADD_CACHE}|=-" command has to be sent alone in one line.    
+It must be followed by the URL as the next line.    
+After this the value that needs to be added to cache has to be sent. It can contain multiple lines.    
+The value must be followed by the "-=|{END}|=-" text in a separate line.
+If the cache has been added successfully, the Cache application will respond with the text "-=|{ADD_SUCCESS}|=-" in a separate line.
 
-|Name      |Location  | Type               | Description                                                 |
-|----------|----------|--------------------|-------------------------------------------------------------|
-| url      | path     | URL-encoded string | the URL of the request whose response has to be cached      |
+Here is an example of communication between the client and the Cache server:
+```
+CLIENT>-=|{ADD_CACHE}|=-
+CLIENT>/warehouse/products/85
+CLIENT>-=|{HEADERS}|=-
+CLIENT>Content-Type||||application/json;charset=ISO-8859-1
+CLIENT>Content-Length||||492
+CLIENT>-=|{BODY}|=-
+CLIENT>{
+CLIENT>    "id": 85,
+CLIENT>    "name": "Samsung Galaxy S20",
+CLIENT>    "description": "Samsung Galaxy S20 FE G780F 256GB Dual Sim GSM Unlocked Android Smart Phone - International Version (White)",
+CLIENT>    "category": "electronics",
+CLIENT>    "price": 729.00,
+CLIENT>    "characteristics": "Display: 6.5 inches Super AMOLED capacitive touchscreen w/ Corning Gorilla Glass 3, Resolution: 1080 x 2400 pixels; Memory: 256GB 8GB RAMMicroSD up to 1TB",
+CLIENT>    "photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/...NgYx3UAeYSByyEwTBMEwf+L//Z",
+CLIENT>    "version": 0,
+CLIENT>    "quantity": 1
+CLIENT>}
+CLIENT>-=|{END}|=-
+SERVER>-=|{ADD_SUCCESS}|=-
+``` 
 
-	- Body: a JSON object containing the respose for the corresponding URL
-	- Successful result:
-		* Status Code: 200
+2. -=|{GET_CACHE}|=-: get from cache the response for an URL    
+The "-=|{GET_CACHE}|=-" has to be sent alone in one line.    
+It must be followed by the URL as the next line.    
+If the value for the specified URL is found in Cache, then server will send back the value, followed by the "-=|{END}|=-" text in a separate line.    
+If the value for the specified URL is not found in Cache, then the server will respond with "-=|{NOT_FOUND}|=-" text in a separate line.
 
-2. getCache: get a response from the Cache
-	- Method: GET  
-	- Path: /cache/responses/{url}  
-	- Parameters:  
-
-|Name      |Location  | Type               | Description                                                          |
-|----------|----------|--------------------|----------------------------------------------------------------------|
-| url      | path     | URL-encoded string | the URL of the request whose response has to be retrieved from cache |
-
-	- Successful result:
-		* Status Code: 200
-	- Cache not found result:
-		* Status Code: 404
+Here is an example of communication between the client and the Cache server:
+```
+CLIENT>-=|{ADD_CACHE}|=-
+CLIENT>/warehouse/products/85
+SERVER>-=|{HEADERS}|=-
+SERVER>Content-Type||||application/json;charset=ISO-8859-1
+SERVER>Content-Length||||492
+SERVER>-=|{BODY}|=-
+SERVER>{
+SERVER>    "id": 85,
+SERVER>    "name": "Samsung Galaxy S20",
+SERVER>    "description": "Samsung Galaxy S20 FE G780F 256GB Dual Sim GSM Unlocked Android Smart Phone - International Version (White)",
+SERVER>    "category": "electronics",
+SERVER>    "price": 729.00,
+SERVER>    "characteristics": "Display: 6.5 inches Super AMOLED capacitive touchscreen w/ Corning Gorilla Glass 3, Resolution: 1080 x 2400 pixels; Memory: 256GB 8GB RAMMicroSD up to 1TB",
+SERVER>    "photo": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/...NgYx3UAeYSByyEwTBMEwf+L//Z",
+SERVER>    "version": 0,
+SERVER>    "quantity": 1
+SERVER>}
+SERVER>-=|{END}|=-

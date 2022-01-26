@@ -9,6 +9,13 @@ import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class is used to execute the commands received from a Cache client.<br/>
+ * For each client a separate instance of this class is executing the commands in a separate thread.
+ * 
+ * @author Alina Dubenco
+ *
+ */
 public class CommandsHandler implements Runnable {
 	private static final Logger LOG = LoggerFactory.getLogger(CommandsHandler.class);
 	
@@ -26,6 +33,7 @@ public class CommandsHandler implements Runnable {
 				BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 				PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 		) {
+			LOG.info("Client has connected from address {} and port {}", clientSocket.getRemoteSocketAddress(), clientSocket.getPort());
         
 	        String inputLine;
 	        while ((inputLine = in.readLine()) != null) {
@@ -61,6 +69,7 @@ public class CommandsHandler implements Runnable {
             	if(key != null) {
             		cacheStore.add(key, value.toString());
             		out.println("-=|{ADD_SUCCESS}|=-");
+            		LOG.debug("Added cache for '{}'", key);
             	} else {
             		LOG.warn("Key is null. There is nothing to add to cache.");
             	}
@@ -79,9 +88,11 @@ public class CommandsHandler implements Runnable {
 			String value = cacheStore.get(inputLine);
 			if(value == null) {
 				out.println("-=|{NOT_FOUND}|=-");
+				LOG.debug("Cache for '{}' was not found", inputLine);
 			} else {
 				out.println(value);
 				out.println("-=|{END}|=-");
+				LOG.debug("Cache for '{}' was sent", inputLine);
 			}
 		}
 	}
