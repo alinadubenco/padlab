@@ -1,1 +1,1 @@
-java -jar target\cache-0.0.1-SNAPSHOT.jar edu.dubenco.alina.cache.CacheApplication
+java -cp target\cache-0.0.1-SNAPSHOT.jar -Dserver.port=8087 -Dlogback.configurationFile=./config/logback.xml edu.dubenco.alina.cache.CacheApplication

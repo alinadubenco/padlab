@@ -1,5 +1,5 @@
-# Lab 1: Web Proxy
-This branch contains laboratory 1.
+# Lab 2: Logically Linked DBs
+This branch contains laboratory 2.
 For other laboratories, please see the corresponding branch:
 1. Lab1 -> branch "lab1"
 2. Lab2 -> branch "lab2"
@@ -455,3 +455,22 @@ SERVER>    "version": 0,
 SERVER>    "quantity": 1
 SERVER>}
 SERVER>-=|{END}|=-
+
+## Resources
+https://dzone.com/articles/using-ha-jdbc-with-spring-boot
+https://www.digitalocean.com/community/tutorials/how-to-configure-mysql-group-replication-on-ubuntu-16-04
+https://www.digitalocean.com/community/tutorials/how-to-set-up-replication-in-mysql
+https://www.sentinelone.com/blog/create-docker-image/
+https://keepgrowing.in/tools/processing-logs-with-elastic-stack-1-parse-and-send-various-log-entries-to-elasticsearch/
+
+DockerDesktop setup:
+in cmd:
+```
+wsl -d docker-desktop
+sysctl -w vm.max_map_count=262144
+```
+Create file C:\Users\<USER>\.wslconfig
+```
+memory=4GB
+swap=8GB
+```
