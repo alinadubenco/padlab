@@ -455,6 +455,7 @@ SERVER>    "version": 0,
 SERVER>    "quantity": 1
 SERVER>}
 SERVER>-=|{END}|=-
+```
 
 ## Resources
 https://dzone.com/articles/using-ha-jdbc-with-spring-boot
