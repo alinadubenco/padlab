@@ -1,1 +1,1 @@
-java -jar target\gateway-0.0.1-SNAPSHOT.jar  edu.dubenco.alina.gateway.GatewayApplication
+java -jar target\gateway-0.0.1-SNAPSHOT.jar --logging.config=config/logback.xml edu.dubenco.alina.gateway.GatewayApplication

@@ -50,8 +50,64 @@ To further reduce the load on the microservices, we will implement a Cache which
 Here is a diagram depicting the high-level interaction between the components of our e-commerce system:
 ![alt text](img/sysInteraction.png "E-Commerce components interaction")
 
-Here is the sequence diagram depicting the basic flow of a shopping session.
+### Long-running saga transactions
+Here is the sequence diagram depicting the basic flow of a shopping session.    
+As you can see in this diagram, the "placeOrder" operation is implemented as a "Long-running saga transaction".    
 ![alt text](img/sdShopping.png "Shopping sequence diagram")
+
+### Log management with ELK
+All the applications developed for this laboratory are using "logback" library for logging.    
+On to of that all the applications are using "logstash-logback-encoder" library to forward the logs to "Logstash".     
+This configuration is done in the config\logback.xml configuration file of each application by using the following appender:
+```
+    <appender name="stash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>localhost:19600</destination>
+        <!-- encoder is required -->
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    </appender>
+```
+(see 
+[cache/config/logback.xml](cache/config/logback.xml), 
+[gateway/config/logback.xml](gateway/config/logback.xml), 
+[ordering/config/logback1.xml](ordering/config/logback1.xml), 
+[warehouse/config/logback1.xml](warehouse/config/logback1.xml)
+)
+Here the value of the "<destination>" tag specifies the host and port where Logstash is listenning for logging messages.    
+The configuration of Logstash that instructs Logstash to listen on this port is defined in [pipeline\logstash.conf](pipeline\logstash.conf) file as follows:
+```
+input {
+    tcp {
+        port => 19600
+        codec => json_lines
+    }
+}
+```
+
+Logstash, on its turn, is forwarding the logs to Elasticsearch. This is configured as well in [pipeline\logstash.conf](pipeline\logstash.conf) file as follows:
+```
+output {
+    elasticsearch {
+        hosts => ["es01:9200"]
+    }
+    stdout {}
+}
+```
+
+The logs can then be viewed in Kibana.    
+In order to be able to view in Kibana the logs received from Elasticsearch, we first need to create an index.     
+The following steps need to be done in order to create the index:
+
+1. Navigate to http://localhost:5601/
+2. Open the menu by clicking the button with 3 horizontal lines in the top-left corner.
+3. Scroll down and click "Stack Management".
+4. In the "Stack Management" screen click "Index Patterns".
+5. Create a new index pattern specifying: 
+	- Name: logstash-*
+	- Timestamp field: @timestamp
+6. Open again the menu by clicking the button with 3 horizontal lines in the top-left corner.
+7. Click "Discover".
+8. Adjust time for which the logs should be shown. It is also possible to advansed searcing.
+
 
 ### Warehouse microservice
 This microservice will handle all the warehouse-related operations.
@@ -463,6 +519,7 @@ https://www.digitalocean.com/community/tutorials/how-to-configure-mysql-group-re
 https://www.digitalocean.com/community/tutorials/how-to-set-up-replication-in-mysql     
 https://www.sentinelone.com/blog/create-docker-image/       
 https://keepgrowing.in/tools/processing-logs-with-elastic-stack-1-parse-and-send-various-log-entries-to-elasticsearch/         
+https://medium.com/geekculture/shoving-your-docker-container-logs-to-elk-made-simple-882bffdbcad6
 
 DockerDesktop setup:    
 in cmd:    
