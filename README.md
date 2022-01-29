@@ -85,7 +85,7 @@ input {
 }
 ```
 
-Logstash, on its turn, is forwarding the logs to Elasticsearch. This is configured as well in [pipeline\logstash.conf](pipeline\logstash.conf) file as follows:
+Logstash, on its turn, is forwarding the logs to Elasticsearch. This is configured as well in [pipeline/logstash.conf](pipeline/logstash.conf) file as follows:
 ```
 output {
     elasticsearch {
