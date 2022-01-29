@@ -75,7 +75,7 @@ This configuration is done in the config\logback.xml configuration file of each 
 [warehouse/config/logback1.xml](warehouse/config/logback1.xml)
 )
 Here the value of the "<destination>" tag specifies the host and port where Logstash is listenning for logging messages.    
-The configuration of Logstash that instructs Logstash to listen on this port is defined in [pipeline\logstash.conf](pipeline\logstash.conf) file as follows:
+The configuration of Logstash that instructs Logstash to listen on this port is defined in [pipeline/logstash.conf](pipeline/logstash.conf) file as follows:
 ```
 input {
     tcp {
