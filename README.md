@@ -8,6 +8,8 @@ For other laboratories, please see the corresponding branch:
 ## Index
 * [System funnctionality](#system-funnctionality)
 * [System architecture](#system-architecture)
+  * [Long-running saga transactions](#long-running-saga-transactions)
+  * [Log management with ELK](#log-management-with-elk)
   * [Warehouse microservice](#warehouse-microservice)
   * [Ordering microservice](#ordering-microservice)
   * [Gateway](#gateway)
