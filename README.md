@@ -10,7 +10,7 @@ For other laboratories, please see the corresponding branch:
 * [System architecture](#system-architecture)
   * [Long-running saga transactions](#long-running-saga-transactions)
   * [Log management with ELK](#log-management-with-elk)
-  * [Database redundancy/replication + failover](#database-redundancy-replication-failover)
+  * [Database redundancy/replication + failover](#database-redundancyreplication--failover)
   * [Warehouse microservice](#warehouse-microservice)
   * [Ordering microservice](#ordering-microservice)
   * [Gateway](#gateway)
