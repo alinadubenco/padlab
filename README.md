@@ -10,6 +10,7 @@ For other laboratories, please see the corresponding branch:
 * [System architecture](#system-architecture)
   * [Long-running saga transactions](#long-running-saga-transactions)
   * [Log management with ELK](#log-management-with-elk)
+  * [Database redundancy/replication + failover](#database-redundancy-replication-failover)
   * [Warehouse microservice](#warehouse-microservice)
   * [Ordering microservice](#ordering-microservice)
   * [Gateway](#gateway)
@@ -113,13 +114,13 @@ The following steps need to be done in order to create the index:
 ### Database redundancy/replication + failover
 The [Warehouse microservice](#warehouse-microservice) is using MySQL DB via Strong Data JPA which is using JDBC.   
 In order to support redundancy and failover, I have used the ha-jdbc library (see [http://ha-jdbc.org/doc.html]).   
-I have instructed Spring Data JPA to use ha-jdbc library using the following properies in [warehouse/src/main/resources/application.properties]:
+I have instructed Spring Data JPA to use ha-jdbc library using the following properies in [warehouse/src/main/resources/application.properties](warehouse/src/main/resources/application.properties):
 ```
 spring.datasource.url=jdbc:ha-jdbc:default
 spring.datasource.driver-class-name=net.sf.hajdbc.sql.Driver
 ```
 
-The redundancy and failover is configured for ha-jdbc library using the [warehouse/config/ha-jdbc-default.xml] file.    
+The redundancy and failover is configured for ha-jdbc library using the [warehouse/config/ha-jdbc-default.xml](warehouse/config/ha-jdbc-default.xml) file.    
 ```
 <ha-jdbc xmlns="urn:ha-jdbc:cluster:3.0">
     <sync id="passive">
