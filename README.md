@@ -112,7 +112,7 @@ The following steps need to be done in order to create the index:
 8. Adjust time for which the logs should be shown. It is also possible to advansed searcing.
 
 ### Database redundancy/replication + failover
-The [Warehouse microservice](#warehouse-microservice) is using MySQL DB via Strong Data JPA which is using JDBC.   
+The [Warehouse microservice](#warehouse-microservice) is using MySQL DB via Spring Data JPA which is using JDBC.   
 In order to support redundancy and failover, I have used the ha-jdbc library (see [http://ha-jdbc.org/doc.html]).   
 I have instructed Spring Data JPA to use ha-jdbc library using the following properies in [warehouse/src/main/resources/application.properties](warehouse/src/main/resources/application.properties):
 ```
