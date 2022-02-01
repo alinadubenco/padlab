@@ -6,7 +6,6 @@ import java.util.Objects;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.Lob;
 import javax.persistence.Transient;
 
 import org.springframework.data.annotation.Version;
@@ -29,9 +28,6 @@ public class Product {
 	private BigDecimal price;
 
 	private String characteristics;
-	
-	@Lob 
-	private String photo;
 	
 	@Version
 	private long version;
@@ -99,14 +95,6 @@ public class Product {
 
 	public void setCharacteristics(String characteristics) {
 		this.characteristics = characteristics;
-	}
-
-	public String getPhoto() {
-		return photo;
-	}
-
-	public void setPhoto(String photo) {
-		this.photo = photo;
 	}
 
 	public long getVersion() {

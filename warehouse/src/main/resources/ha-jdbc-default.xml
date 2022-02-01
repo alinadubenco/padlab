@@ -1,0 +1,25 @@
+<ha-jdbc xmlns="urn:ha-jdbc:cluster:3.0">
+    <sync id="passive">
+    </sync>
+	<state id="simple"/>
+    <cluster 
+			balancer="round-robin" 
+			meta-data-cache="none" 
+    		dialect="mysql" 
+			durability="none" 
+			auto-activate-schedule="0/10 * * ? * * *"
+			failure-detect-schedule="0/13 * * ? * * *" 
+			detect-identity-columns="false"
+			detect-sequences="false" 
+			default-sync="passive" 
+			>
+       <database id="db1" location="jdbc:mysql://localhost:3306/warehouse" weight="2">
+         <user>whuser</user>
+         <password>whpswd</password>
+       </database>
+       <database id="db2" location="jdbc:mysql://localhost:13306/warehouse" weight="1">
+         <user>whuser</user>
+         <password>whpswd</password>
+       </database>
+    </cluster>
+</ha-jdbc>

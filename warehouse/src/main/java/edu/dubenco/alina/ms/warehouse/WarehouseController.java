@@ -24,6 +24,8 @@ import edu.dubenco.alina.ms.warehouse.repo.InputOutput;
 import edu.dubenco.alina.ms.warehouse.repo.InputOutputRepository;
 import edu.dubenco.alina.ms.warehouse.repo.Product;
 import edu.dubenco.alina.ms.warehouse.repo.ProductRepository;
+import net.sf.hajdbc.sql.Driver;
+import net.sf.hajdbc.invocation.InvokeOnManyInvocationStrategy;
 
 /**
  * This class handles all the REST APIs for the Warehouse microservice.

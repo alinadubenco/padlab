@@ -110,6 +110,46 @@ The following steps need to be done in order to create the index:
 7. Click "Discover".
 8. Adjust time for which the logs should be shown. It is also possible to advansed searcing.
 
+### Database redundancy/replication + failover
+The [Warehouse microservice](#warehouse-microservice) is using MySQL DB via Strong Data JPA which is using JDBC.   
+In order to support redundancy and failover, I have used the ha-jdbc library (see [http://ha-jdbc.org/doc.html]).   
+I have instructed Spring Data JPA to use ha-jdbc library using the following properies in [warehouse/src/main/resources/application.properties]:
+```
+spring.datasource.url=jdbc:ha-jdbc:default
+spring.datasource.driver-class-name=net.sf.hajdbc.sql.Driver
+```
+
+The redundancy and failover is configured for ha-jdbc library using the [warehouse/config/ha-jdbc-default.xml] file.    
+```
+<ha-jdbc xmlns="urn:ha-jdbc:cluster:3.0">
+    <sync id="passive">
+    </sync>
+	<state id="simple"/>
+    <cluster 
+			balancer="round-robin" 
+			meta-data-cache="none" 
+    		dialect="mysql" 
+			durability="none" 
+			auto-activate-schedule="0/20 * * ? * * *"
+			failure-detect-schedule="0/23 * * ? * * *" 
+			detect-identity-columns="false"
+			detect-sequences="false" 
+			default-sync="passive" 
+			>
+       <database id="db1" location="jdbc:mysql://localhost:3306/warehouse" weight="2">
+         <user>whuser</user>
+         <password>whpswd</password>
+       </database>
+       <database id="db2" location="jdbc:mysql://localhost:13306/warehouse" weight="1">
+         <user>whuser</user>
+         <password>whpswd</password>
+       </database>
+    </cluster>
+</ha-jdbc>
+```
+In this file I have defined connection to 2 MySQL databases. Using the attribute "failure-detect-schedule" I've configured ha-jdbc library to check every 23 seconds if any of the databases has failed.
+The "auto-activate-schedule" attribute instructs ha-jdbc library to check every 20 seconds if a failed database became available again.
+
 
 ### Warehouse microservice
 This microservice will handle all the warehouse-related operations.
@@ -517,6 +557,7 @@ SERVER>-=|{END}|=-
 
 ## Resources
 https://dzone.com/articles/using-ha-jdbc-with-spring-boot     
+http://ha-jdbc.org/
 https://www.digitalocean.com/community/tutorials/how-to-configure-mysql-group-replication-on-ubuntu-16-04      
 https://www.digitalocean.com/community/tutorials/how-to-set-up-replication-in-mysql     
 https://www.sentinelone.com/blog/create-docker-image/       

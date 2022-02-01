@@ -46,6 +46,11 @@
 			<version>7.0.1</version>
 		</dependency>
 		<dependency>
+		    <groupId>net.sf.ha-jdbc</groupId>
+		    <artifactId>ha-jdbc</artifactId>
+		    <version>3.0.3</version>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>

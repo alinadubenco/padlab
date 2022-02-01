@@ -1,1 +1,1 @@
-java -jar target\warehouse-0.0.1-SNAPSHOT.jar --server.port=8085 --service.url=http://localhost:8085/ --logging.config=config/logback2.xml edu.dubenco.alina.ms.warehouse.WarehouseApplication
+java -cp target\warehouse-0.0.1-SNAPSHOT.jar;. -Dloader.path=target\warehouse-0.0.1-SNAPSHOT.jar -Dha-jdbc.default.configuration=config/ha-jdbc-default.xml org.springframework.boot.loader.PropertiesLauncher --server.port=8085 --service.url=http://localhost:8085/ --logging.config=config/logback2.xml
