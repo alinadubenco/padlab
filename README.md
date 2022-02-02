@@ -577,7 +577,11 @@ To start the docker containers:
 wsl -d docker-desktop
 sysctl -w vm.max_map_count=262144
 ```
-2. Set the memory limit for Docker to at least 4Gb. If using Docker with WSL2, this can be done by creating the file C:\Users\\<USER>\\.wslconfig with the following content:
+2. Set the memory limit for Docker to at least 4Gb. If using Docker with WSL2, this can be done by creating the file 
+``` 
+C:\Users\<YOUR_USER>\.wslconfig 
+```
+with the following content:
 ```
 memory=4GB
 swap=8GB
