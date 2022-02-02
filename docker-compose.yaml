@@ -1,7 +1,8 @@
 version: '3.2'
 services:
-  couchbase:
+  couchbase01:
     image: couchbase/server:enterprise-7.0.0
+    hostname: couchbase01
     ports:
       - 8091-8096:8091-8096
       - 11210-11211:11210-11211
@@ -48,8 +49,7 @@ services:
     environment:
       - node.name=es01
       - cluster.name=es-docker-cluster
-      - discovery.seed_hosts=es02,es03
-      - cluster.initial_master_nodes=es01,es02,es03
+      - discovery.type=single-node
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ulimits:
@@ -61,45 +61,7 @@ services:
     ports:
       - 9200:9200
     networks:
-      - elastic
-
-  es02:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.3
-    container_name: es02
-    environment:
-      - node.name=es02
-      - cluster.name=es-docker-cluster
-      - discovery.seed_hosts=es01,es03
-      - cluster.initial_master_nodes=es01,es02,es03
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - data02:/usr/share/elasticsearch/data
-    networks:
-      - elastic
-
-  es03:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.3
-    container_name: es03
-    environment:
-      - node.name=es03
-      - cluster.name=es-docker-cluster
-      - discovery.seed_hosts=es01,es02
-      - cluster.initial_master_nodes=es01,es02,es03
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - data03:/usr/share/elasticsearch/data
-    networks:
-      - elastic
+      - my_network
 
   kib01:
     image: docker.elastic.co/kibana/kibana:7.16.3
@@ -108,13 +70,11 @@ services:
       - 5601:5601
     depends_on:
       - es01
-      - es02
-      - es03
     environment:
       ELASTICSEARCH_URL: http://es01:9200
-      ELASTICSEARCH_HOSTS: '["http://es01:9200","http://es02:9200","http://es03:9200"]'
+      ELASTICSEARCH_HOSTS: http://es01:9200
     networks:
-      - elastic
+      - my_network
 
   logstash:
     image: docker.elastic.co/logstash/logstash:7.16.3
@@ -124,18 +84,75 @@ services:
       - 19600:19600
     depends_on:
       - es01
-      - es02
-      - es03
     environment:
       ELASTICSEARCH_URL: http://es01:9200
-      ELASTICSEARCH_HOSTS: '["http://es01:9200","http://es02:9200","http://es03:9200"]'
-      xpack.monitoring.elasticsearch.hosts: '["http://es01:9200","http://es02:9200","http://es03:9200"]'
+      ELASTICSEARCH_HOSTS: http://es01:9200
+      xpack.monitoring.elasticsearch.hosts: http://es01:9200
     volumes:
       - type: bind
         source: $PWD/pipeline/
         target: /usr/share/logstash/pipeline/
     networks:
-      - elastic
+      - my_network
+
+  cache01:
+    image: edu.dubenco.alina/cache:latest
+    container_name: cache01
+    ports:
+      - 8079:8080
+    environment:
+      JAVA_OPTS: "-Xms75M -Xmx100M"
+    networks:
+      - my_network
+
+  gw01:
+    image: docker.io/library/gateway:0.0.1-SNAPSHOT
+    container_name: gw01
+    ports:
+      - 8080:8080
+    environment:
+      JAVA_OPTS: "-Xms75M -Xmx100M"
+      SERVER_PORT: 8080
+      CACHE_HOST: cache01
+      CACHE_PORT: 8080
+    networks:
+      - my_network
+
+  wh01:
+    image: docker.io/library/warehouse:0.0.1-SNAPSHOT
+    container_name: wh01
+    ports:
+      - 8081:8080
+    environment:
+      JAVA_OPTS: "-Xms75M -Xmx100M"
+      SERVER_PORT: 8080
+      SERVICE_URL: http://wh01:8080/
+      SERVICE_REGISTRATION_URL: http://gw01:8080/gateway/services
+    depends_on:
+      - mysql01
+      - mysql02
+      - logstash
+      - gw01
+    networks:
+      - my_network
+
+  ord01:
+    image: docker.io/library/ordering:0.0.1-SNAPSHOT
+    container_name: ord01
+    ports:
+      - 8082:8080
+    environment:
+      JAVA_OPTS: "-Xms75M -Xmx100M"
+      SERVER_PORT: 8080
+      SERVICE_URL: http://ord01:8080/
+      SERVICE_REGISTRATION_URL: http://gw01:8080/gateway/services
+      GATEWAY_URL: http://gw01:8080/
+    depends_on:
+      - couchbase01
+      - logstash
+      - gw01
+    networks:
+      - my_network
 
 volumes:
   data01:
@@ -147,5 +164,4 @@ volumes:
 
 networks:
   my_network:
-  elastic:
     driver: bridge

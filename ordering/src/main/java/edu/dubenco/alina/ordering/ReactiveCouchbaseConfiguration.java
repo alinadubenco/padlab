@@ -1,5 +1,6 @@
 package edu.dubenco.alina.ordering;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.couchbase.config.AbstractCouchbaseConfiguration;
 import org.springframework.data.couchbase.repository.config.EnableCouchbaseRepositories;
@@ -14,9 +15,12 @@ import org.springframework.data.couchbase.repository.config.EnableCouchbaseRepos
 @EnableCouchbaseRepositories(basePackages = {"edu.dubenco.alina.ordering.repo"})
 public class ReactiveCouchbaseConfiguration extends AbstractCouchbaseConfiguration {
 	
-	private String connectionString = "couchbase://127.0.0.1";
-	private String userName = "Administrator";
-	private String password = "Administrator";
+	@Value("${couchbase.connection.string}")
+	private String connectionString;
+	@Value("${couchbase.user}")
+	private String userName;
+	@Value("${couchbase.password}")
+	private String password;
 	private String bucketName = "orders";
 
     @Override

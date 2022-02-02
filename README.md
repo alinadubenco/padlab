@@ -15,6 +15,7 @@ For other laboratories, please see the corresponding branch:
   * [Ordering microservice](#ordering-microservice)
   * [Gateway](#gateway)
   * [Cache](#cache)
+* [Build and run](#build-and-run)
 
 ----------------------------------------------------
 
@@ -149,8 +150,8 @@ The redundancy and failover is configured for ha-jdbc library using the [warehou
 </ha-jdbc>
 ```
 In this file I have defined connection to 2 MySQL databases. Using the attribute "failure-detect-schedule" I've configured ha-jdbc library to check every 23 seconds if any of the databases has failed.
-The "auto-activate-schedule" attribute instructs ha-jdbc library to check every 20 seconds if a failed database became available again.
-
+The "auto-activate-schedule" attribute instructs ha-jdbc library to check every 20 seconds if a failed database became available again.    
+With this configuration, all the "insert", "update" and "delete" statements are automatically executed in both DBs. Every "select" statement is executed on one of the DBs and are balanced using "round-robin" algorithm.
 
 ### Warehouse microservice
 This microservice will handle all the warehouse-related operations.
@@ -556,12 +557,69 @@ SERVER>}
 SERVER>-=|{END}|=-
 ```
 
+## Build and run
+First you need to install:
+- Java 11
+- Maven 3.6.3
+- Docker Desktop
+- Git Bash
+
+Checkout the entire repository to some directory (i.e. C:\dev\padlab)
+To build, just run:
+```
+cd C:\dev\padlab
+build.cmd
+``` 
+
+To start the docker containers:
+1. Set vm.max_map_count (needed for elasticsearch)
+```
+wsl -d docker-desktop
+sysctl -w vm.max_map_count=262144
+```
+2. Set the memory limit for Docker to at least 4Gb. If using Docker with WSL2, this can be done by creating the file C:\Users\\<USER>\\.wslconfig with the following content:
+```
+memory=4GB
+swap=8GB
+```
+3. Restart the Docker engine for these settings to take effect.
+4. Start the Docker containers:
+	- open Git Bash
+	- run the following commands:
+	```
+	cd /c/dev/padlab
+	docker-compose up -d
+	``` 
+5. Wait for all the containers to start. Please note that if you start the containers for the first time, it is possible for the following containers to fail to start: 
+"cache01", "gw01", "wh01", "ord01".    
+This is happening because the ELK takes time to setup for the first time and also we need to manually setup the Couchbase DB (the next steps).
+So, please continue with the next steps.
+6. If you are starting the containers for the first time, you need to setup the Couchbase cluster as follows: 
+	- In browser navigate to http://localhost:8091/
+	- Click "Setup New Cluster"
+	- Enter:      
+		Cluster Name: cb-cluster    
+		Username: Administrator      
+		Password and Confirm Password: Administrator     
+		Then click "Next"
+	- Check "I accept the terms & conditions" then click "Configure Disk, Memory, Services"
+	- For "Data" enter 256, uncheck "Analytics", then click "Save & Finish"
+	- On the left-side menu click "Buckets"
+	- In the top-right corner click "ADD BUCKET"
+	- Enter:     
+		Name: orders     
+		In "Advanced bucket settings" uncheck "Replicas"->"Enable"
+	- Click "Add Bucket"
+7. If you are starting the containers for the first time, then restart the following containers: "cache01", "gw01", "wh01", "ord01"
+
+
 ## Resources
 https://dzone.com/articles/using-ha-jdbc-with-spring-boot     
 http://ha-jdbc.org/
 https://www.digitalocean.com/community/tutorials/how-to-configure-mysql-group-replication-on-ubuntu-16-04      
 https://www.digitalocean.com/community/tutorials/how-to-set-up-replication-in-mysql     
 https://www.sentinelone.com/blog/create-docker-image/       
+https://snyk.io/blog/best-practices-to-build-java-containers-with-docker/         
 https://keepgrowing.in/tools/processing-logs-with-elastic-stack-1-parse-and-send-various-log-entries-to-elasticsearch/         
 https://medium.com/geekculture/shoving-your-docker-container-logs-to-elk-made-simple-882bffdbcad6
 
