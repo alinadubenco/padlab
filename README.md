@@ -537,7 +537,7 @@ If the value for the specified URL is not found in Cache, then the server will r
 
 Here is an example of communication between the client and the Cache server:
 ```
-CLIENT>-=|{ADD_CACHE}|=-
+CLIENT>-=|{GET_CACHE}|=-
 CLIENT>/warehouse/products/85
 SERVER>-=|{HEADERS}|=-
 SERVER>Content-Type||||application/json;charset=ISO-8859-1
