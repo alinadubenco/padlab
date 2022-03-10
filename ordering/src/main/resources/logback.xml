@@ -16,7 +16,7 @@
 	</appender>
 
     <appender name="stash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>logstash:19600</destination>
+        <destination>localhost:19600</destination>
 
         <!-- encoder is required -->
         <encoder class="net.logstash.logback.encoder.LogstashEncoder" />

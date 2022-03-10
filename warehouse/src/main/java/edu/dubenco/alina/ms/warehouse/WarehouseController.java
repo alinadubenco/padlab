@@ -146,6 +146,14 @@ public class WarehouseController {
 		}
 	}
 	
+	@GetMapping("status")
+	public String getStatus() {
+		LOG.debug("Checking status");
+		//Make sure DB is accessible. If exception is thrown, then the API will return HTTP Status 500 (not 200)
+		balanceRepository.findAll();
+		return "UP";
+	}
+	
 	private int getAvailableProductQuantity(long productId) {
 		int quanttity = 0;
 		try {

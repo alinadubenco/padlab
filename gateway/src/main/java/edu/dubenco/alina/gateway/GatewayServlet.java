@@ -174,6 +174,10 @@ public class GatewayServlet extends HttpServlet {
 	        
 			try {
 				HttpResponse<String> outboundHttpResponse = httpClient.send(outboundHttpRequest, HttpResponse.BodyHandlers.ofString());
+				
+				if(outboundHttpResponse.statusCode() == 500) {
+					throw new IOException(outboundHttpResponse.body());
+				}
 				simpleResponse = new SimpleHttpResponse(outboundHttpResponse);
 		        
 		        return simpleResponse;

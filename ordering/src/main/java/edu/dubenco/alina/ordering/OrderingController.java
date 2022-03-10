@@ -76,6 +76,12 @@ public class OrderingController {
 		return order;
 	}
 
+	@GetMapping("status")
+	public String getStatus() {
+		LOG.debug("Checking status");
+		return "UP";
+	}
+	
 	private String reserveProductsInWarehouse(Order order) {
 		HttpEntity<DocumentInfo> docHttpEntity = orderToHttpEntity(order);
 		ResponseEntity<String> response = restTemplate.postForEntity(gatewayUrl + "/warehouse/reservation/", docHttpEntity, String.class);
