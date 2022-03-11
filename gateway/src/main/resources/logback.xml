@@ -15,15 +15,14 @@
 		</encoder>
 	</appender>
 
-    <appender name="stash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+    <!--appender name="stash" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
         <destination>localhost:19600</destination>
 
-        <!-- encoder is required -->
         <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
-    </appender>
+    </appender-->
 
 	<root level="INFO">
-		<appender-ref ref="stash" />
+		<!--appender-ref ref="stash" /-->
 		<appender-ref ref="CONSOLE" />
 	</root>
 

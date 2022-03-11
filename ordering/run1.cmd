@@ -1,1 +1,0 @@
-java -jar target\ordering-0.0.1-SNAPSHOT.jar --server.port=8082 --service.url=http://localhost:8082/ --logging.config=config/logback1.xml edu.dubenco.alina.ordering.OrderingApplication

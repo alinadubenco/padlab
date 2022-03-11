@@ -1,0 +1,1 @@
+docker build . -t edu.dubenco.alina/gateway

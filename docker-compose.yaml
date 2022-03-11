@@ -1,166 +1,45 @@
 version: '3.2'
 services:
-  couchbase01:
-    image: couchbase/server:enterprise-7.0.0
-    hostname: couchbase01
-    ports:
-      - 8091-8096:8091-8096
-      - 11210-11211:11210-11211
-    networks:
-      - my_network
-  mysql01:
-    image: mysql:latest
-    hostname: mysql01
-    command: --sql-mode=NO_ENGINE_SUBSTITUTION
-    restart: always
-    ports:
-      - 3306:3306
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpswd
-      MYSQL_DATABASE: warehouse
-      MYSQL_USER: whuser
-      MYSQL_PASSWORD: whpswd
-    networks:
-      my_network:
-        aliases:
-          - mysql.db.internal
-    tty: true
-  mysql02:
-    image: mysql:latest
-    hostname: mysql02
-    command: --sql-mode=NO_ENGINE_SUBSTITUTION
-    restart: always
-    ports:
-      - 13306:3306
-    environment:
-      MYSQL_ROOT_PASSWORD: rootpswd
-      MYSQL_DATABASE: warehouse
-      MYSQL_USER: whuser
-      MYSQL_PASSWORD: whpswd
-    networks:
-      my_network:
-        aliases:
-          - mysql.db.internal
-    tty: true
-
-  es01:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.3
-    container_name: es01
-    environment:
-      - node.name=es01
-      - cluster.name=es-docker-cluster
-      - discovery.type=single-node
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - data01:/usr/share/elasticsearch/data
-    ports:
-      - 9200:9200
-    networks:
-      - my_network
-
-  kib01:
-    image: docker.elastic.co/kibana/kibana:7.16.3
-    container_name: kib01
-    ports:
-      - 5601:5601
-    depends_on:
-      - es01
-    environment:
-      ELASTICSEARCH_URL: http://es01:9200
-      ELASTICSEARCH_HOSTS: http://es01:9200
-    networks:
-      - my_network
-
-  logstash:
-    image: docker.elastic.co/logstash/logstash:7.16.3
-    container_name: logstash
-    ports:
-      - 9600:9600
-      - 19600:19600
-    depends_on:
-      - es01
-    environment:
-      ELASTICSEARCH_URL: http://es01:9200
-      ELASTICSEARCH_HOSTS: http://es01:9200
-      xpack.monitoring.elasticsearch.hosts: http://es01:9200
-    volumes:
-      - type: bind
-        source: $PWD/pipeline/
-        target: /usr/share/logstash/pipeline/
-    networks:
-      - my_network
-
-  cache01:
-    image: edu.dubenco.alina/cache:latest
-    container_name: cache01
-    ports:
-      - 8079:8080
-    environment:
-      JAVA_OPTS: "-Xms75M -Xmx100M"
-    networks:
-      - my_network
-
-  gw01:
-    image: docker.io/library/gateway:0.0.1-SNAPSHOT
-    container_name: gw01
+  gateway:
+    image: edu.dubenco.alina/gateway:latest
+    container_name: gateway
     ports:
       - 8080:8080
     environment:
       JAVA_OPTS: "-Xms75M -Xmx100M"
       SERVER_PORT: 8080
-      CACHE_HOST: cache01
-      CACHE_PORT: 8080
     networks:
       - my_network
 
-  wh01:
-    image: docker.io/library/warehouse:0.0.1-SNAPSHOT
-    container_name: wh01
+  service1:
+    image: edu.dubenco.alina/service1:latest
+    container_name: service1
     ports:
       - 8081:8080
     environment:
       JAVA_OPTS: "-Xms75M -Xmx100M"
       SERVER_PORT: 8080
-      SERVICE_URL: http://wh01:8080/
-      SERVICE_REGISTRATION_URL: http://gw01:8080/gateway/services
+      SERVICE_URL: http://service1:8080/
+      GATEWAY_URI: http://gateway:8080/gateway/services
     depends_on:
-      - mysql01
-      - mysql02
-      - logstash
-      - gw01
+      - gateway
     networks:
       - my_network
 
-  ord01:
-    image: docker.io/library/ordering:0.0.1-SNAPSHOT
-    container_name: ord01
+  service2:
+    image: edu.dubenco.alina/service2:latest
+    container_name: service2
     ports:
       - 8082:8080
     environment:
       JAVA_OPTS: "-Xms75M -Xmx100M"
       SERVER_PORT: 8080
-      SERVICE_URL: http://ord01:8080/
-      SERVICE_REGISTRATION_URL: http://gw01:8080/gateway/services
-      GATEWAY_URL: http://gw01:8080/
+      SERVICE_URL: http://service2:8080/
+      GATEWAY_URI: http://gateway:8080/gateway/services
     depends_on:
-      - couchbase01
-      - logstash
-      - gw01
+      - gateway
     networks:
       - my_network
-
-volumes:
-  data01:
-    driver: local
-  data02:
-    driver: local
-  data03:
-    driver: local
 
 networks:
   my_network:

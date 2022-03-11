@@ -1,1 +1,0 @@
-java -cp target\warehouse-0.0.1-SNAPSHOT.jar;. -Dloader.path=target\warehouse-0.0.1-SNAPSHOT.jar -Dha-jdbc.default.configuration=config/ha-jdbc-default.xml org.springframework.boot.loader.PropertiesLauncher --server.port=8085 --service.url=http://localhost:8085/ --service.registration.uri=http://localhost:8080/gateway/services --logging.config=config/logback2.xml

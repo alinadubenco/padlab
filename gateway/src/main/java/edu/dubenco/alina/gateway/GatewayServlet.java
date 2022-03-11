@@ -86,9 +86,9 @@ public class GatewayServlet extends HttpServlet {
 			LOG.debug("Response for URL '{}' was not found in Cache. Calling microservice.", url);
 			simpleResponce = callService(HttpMethod.GET, request, response);
 			
-			if(simpleResponce.getStatusCode() == 200) {
-				addResponseToCache(url, simpleResponce);
-			}
+//			if(simpleResponce.getStatusCode() == 200) {
+//				addResponseToCache(url, simpleResponce);
+//			}
 		}
 		
 		sendResponseToClient(simpleResponce, response);
@@ -261,15 +261,15 @@ public class GatewayServlet extends HttpServlet {
 
 	private SimpleHttpResponse getResponseFromCache(String url) {
 		SimpleHttpResponse simpleResponce = null;
-		CacheClient cacheClient = null;
-		try {
-			cacheClient = cacheClientPool.borrowClient();
-			if(cacheClient != null) {
-				simpleResponce = cacheClient.getCache(url);
-			}
-		} finally {
-			cacheClientPool.returnClient(cacheClient);
-		}
+//		CacheClient cacheClient = null;
+//		try {
+//			cacheClient = cacheClientPool.borrowClient();
+//			if(cacheClient != null) {
+//				simpleResponce = cacheClient.getCache(url);
+//			}
+//		} finally {
+//			cacheClientPool.returnClient(cacheClient);
+//		}
 		return simpleResponce;
 	}
 

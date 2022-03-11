@@ -1,0 +1,1 @@
+java -jar target\service1-0.0.1-SNAPSHOT.jar --server.port=8081 --service.url=http://localhost:8081 --service.registration.uri=http://localhost:8080/gateway/services
